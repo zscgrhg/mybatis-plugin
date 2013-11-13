@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table name="star">
+
+	<operation id="deleteById">
+		<sql>
+			<![CDATA[
+			delete from star where id=#{id,jdbcType=INTEGER};
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="count" resultType="java.lang.Integer">
+		<sql>
+			<![CDATA[
+			select count(*) from star;
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="sum" resultType="java.lang.Integer">
+		<sql>
+			<![CDATA[
+			select sum(id) from star;
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="selectAll" many="true">
+		<sql>
+			<![CDATA[
+			select * from star;
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="selectById" many="false">
+		<sql>
+			<![CDATA[
+			select * from star where id=#{id,jdbcType=INTEGER};
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="selectWithPagination">
+		<comment>
+			分页查询
+			示例
+		</comment>
+		<sql>
+			<![CDATA[
+			select limit #{start,jdbcType=INTEGER} #{size,jdbcType=INTEGER} * from star;
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="selectComplex1" many="true">
+		<result objectName="StarMovies">
+			<property cloumn="id" javaProperty="id" javaType="java.lang.Integer" />
+			<property cloumn="firstname" javaProperty="firstname"
+				javaType="java.lang.String" />
+			<property cloumn="lastname" javaProperty="lastname"
+				javaType="java.lang.String" />
+			<property cloumn="movieid" javaProperty="movieid" javaType="java.lang.Integer" />
+			<property cloumn="title" javaProperty="title" javaType="java.lang.String" />
+		</result>
+		<sql>
+			<![CDATA[
+			select a.*, b.* from star a, movies b where a.id = b.starid
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="selectComplex2" many="true">
+		<result objectName="StarMovies2">
+			<property cloumn="star_id" javaProperty="id" javaType="java.lang.Integer" />
+			<property cloumn="name" javaProperty="firstname" javaType="java.lang.String" />
+			<property cloumn="lastname" javaProperty="lastname"
+				javaType="java.lang.String" />
+			<property cloumn="movieid" javaProperty="movieid" javaType="java.lang.Integer" />
+			<property cloumn="title" javaProperty="title" javaType="java.lang.String" />
+		</result>
+		<sql>
+			<![CDATA[
+			select a.id as star_id, a.firstname as name, a.lastname, 
+			b.movieid, b.title from star a, movies b 
+			where a.id = b.starid
+			]]>
+		</sql>
+	</operation>
+</table>
