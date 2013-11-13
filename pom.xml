@@ -11,7 +11,8 @@
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -23,7 +24,7 @@
 	<groupId>com.tqlab.plugin</groupId>
 	<artifactId>tqlab-mybatis-plugin</artifactId>
 	<name>tqlab-mybatis-plugin</name>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<description>tqlab mybatis plugin</description>
 	<url>${site.url}</url>
 	<packaging>maven-plugin</packaging>
@@ -37,10 +38,9 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:git@git.hidev.net:lijun/mybatis-plugin.git</connection>
-		<developerConnection>scm:git:git@git.hidev.net:lijun/mybatis-plugin.git</developerConnection>
-		<url>http://git.hidev.net/lijun/mybatis-plugin.git</url>
-		<tag>v1.0.1</tag>
+		<connection>scm:git:git@github.com:tqlab/mybatis-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:tqlab/mybatis-plugin.git</developerConnection>
+		<url>https://github.com/tqlab/mybatis-plugin</url>
 	</scm>
 
 	<developers>
