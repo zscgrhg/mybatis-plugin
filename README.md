@@ -41,8 +41,9 @@ Mybatis Generator Plugin Extension
 	</build>
 ```
 
+
 Attribute		|	Description
-				|
+----------------|---------------
 outputDirectory	|Oupput directory, default ${project.basedir}
 jdbcURL			|Database url
 jdbcUserId		|Database user
@@ -53,6 +54,7 @@ dbName			|Database name, mysql，hsqldb etc.
 packages		|Java package name, com.tqlab.test etc.
 sqlTemplatePath	|SqlMapper template path
 overwrite		|overwrite generated file, default false
+
 
 ##2. Sql Template File Sample
 
