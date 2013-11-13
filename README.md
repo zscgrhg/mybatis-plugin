@@ -1,7 +1,16 @@
 Mybatis Generator Plugin Extension
 ==============
+##1. Maven repository
 
-##1. Generator Configuration Sample
+```
+<dependency>
+    <groupId>com.tqlab.plugin</groupId>
+    <artifactId>tqlab-mybatis-plugin</artifactId>
+    <version>1.0.2</version>
+</dependency>
+```
+
+##2. Generator Configuration Sample
 
 ```
 	<build>
@@ -56,7 +65,7 @@ sqlTemplatePath	|SqlMapper template path
 overwrite		|overwrite generated file, default false
 
 
-##2. Sql Template File Sample
+##3. Sql Template File Sample
 
 
 <pre>
