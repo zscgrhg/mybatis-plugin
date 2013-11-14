@@ -6,7 +6,7 @@ Mybatis Generator Plugin Extension
 <dependency>
     <groupId>com.tqlab.plugin</groupId>
     <artifactId>tqlab-mybatis-plugin</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
@@ -51,18 +51,24 @@ Mybatis Generator Plugin Extension
 ```
 
 
-Attribute		|	Description
-----------------|---------------
-outputDirectory	|Oupput directory, default ${project.basedir}
-jdbcURL			|Database url
-jdbcUserId		|Database user
-jdbcPassword	|Database password
-database		|Database
-sqlScript		|Sql file path for execute.
-dbName			|Database name, mysql，hsqldb etc.
-packages		|Java package name, com.tqlab.test etc.
-sqlTemplatePath	|SqlMapper template path
-overwrite		|overwrite generated file, default false
+Attribute		|	Description		|	Default value    | Required
+----------------|------------------|--------------------|------------
+outputDirectory	|Oupput directory 	|${project.build.directory}/generated-sources/mybatis-generator  | 
+sqlScript		|Location of a SQL script file to run before generating code.||false
+jdbcURL			|Database url		|	|true
+jdbcUserId		|Database user		|	|false
+jdbcPassword	|Database password	|	|false
+tableNames		|Comma delimited list of table names to generate|all tables of current database|false
+database		|Database			|	|true
+dbName			|Database name, mysql，hsqldb etc.||true
+packages		|Java package name, com.tqlab.test etc.||true
+overwrite		| Overwrite the exist code, config file or not.|false|false
+sqlTemplatePath	|SqlMapper template path||true
+useCache|Use cache or not.|false|false
+generateSpringConfig|Generate spring osgi xml config file or not.| false|false
+generateOsgiConfig|Generate spring osgi xml config file or not.|false|false
+properties|extra config||false
+
 
 
 ##3. Sql Template File Sample
