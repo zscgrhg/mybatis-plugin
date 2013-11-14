@@ -177,6 +177,13 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		sb.append("    </javaClientGenerator >");
 		sb.append(NEW_LINE);
 		sb.append(NEW_LINE);
+		sb.append("    <commentGenerator>");
+		sb.append(NEW_LINE);
+		sb.append("      <property name=\"suppressDate\" value=\"true\" />");
+		sb.append(NEW_LINE);
+		sb.append("    </commentGenerator>");
+		sb.append(NEW_LINE);
+		sb.append(NEW_LINE);
 		sb.append("    <!-- tables -->");
 		sb.append(NEW_LINE);
 		sb.append(buf.toString());
