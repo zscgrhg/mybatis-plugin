@@ -161,3 +161,13 @@ overwrite		|overwrite generated file, default false
 &lt;/table&gt;
 </code>
 </pre>
+
+##4. Change log
+###v 1.0.2
+1. bugfix hsqldb sql
+2. add mysql support
+3. add extra config (tableNames)
+
+###v 1.0.3
+
+1. modify Java Code generate commment
