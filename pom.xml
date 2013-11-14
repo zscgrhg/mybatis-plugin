@@ -148,6 +148,17 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-plugin-plugin</artifactId>
+				<version>3.2</version>
+				<executions>
+				</executions>
+				<configuration>
+					<!-- Needed for Java 5 annotation based configuration, for some reason. -->
+					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
