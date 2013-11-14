@@ -132,6 +132,13 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		sb.append("    </plugin>");
 		sb.append(NEW_LINE);
 		sb.append(NEW_LINE);
+		sb.append("    <commentGenerator>");
+		sb.append(NEW_LINE);
+		sb.append("      <property name=\"suppressDate\" value=\"true\" />");
+		sb.append(NEW_LINE);
+		sb.append("    </commentGenerator>");
+		sb.append(NEW_LINE);
+		sb.append(NEW_LINE);
 		sb.append("    <jdbcConnection driverClass=\""
 				+ database.getDirverClass() + "\"");
 		sb.append(NEW_LINE);
@@ -175,13 +182,6 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		sb.append("      <property name=\"enableSubPackages\" value=\"true\" />");
 		sb.append(NEW_LINE);
 		sb.append("    </javaClientGenerator >");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
-		sb.append("    <commentGenerator>");
-		sb.append(NEW_LINE);
-		sb.append("      <property name=\"suppressDate\" value=\"true\" />");
-		sb.append(NEW_LINE);
-		sb.append("    </commentGenerator>");
 		sb.append(NEW_LINE);
 		sb.append(NEW_LINE);
 		sb.append("    <!-- tables -->");

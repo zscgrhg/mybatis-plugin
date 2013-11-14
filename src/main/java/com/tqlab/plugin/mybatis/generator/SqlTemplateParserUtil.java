@@ -353,7 +353,6 @@ public class SqlTemplateParserUtil {
 			boolean markAsDoNotDelete) {
 		javaElement.addJavaDocLine(" *"); //$NON-NLS-1$
 		StringBuilder sb = new StringBuilder();
-		sb.append(" * "); //$NON-NLS-1$
 		sb.append(MergeConstants.NEW_ELEMENT_TAG);
 		if (markAsDoNotDelete) {
 			sb.append(" do_not_delete_during_merge"); //$NON-NLS-1$

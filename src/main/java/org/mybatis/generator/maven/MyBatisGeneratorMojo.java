@@ -31,6 +31,9 @@ import java.util.StringTokenizer;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.mybatis.generator.internal.util.StringUtility;
 
 import com.tqlab.plugin.mybatis.database.Database;
@@ -42,107 +45,103 @@ import com.tqlab.plugin.mybatis.generator.MybatisCreaterImpl;
 
 /**
  * Goal which generates MyBatis/iBATIS artifacts.
- * 
- * @goal generate
- * @phase generate-sources
  */
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class MyBatisGeneratorMojo extends AbstractMojo {
 
-	/**
-	 * @parameter expression="${mybatis.generator.outputDirectory}"
-	 *            default-value=
-	 *            "${project.build.directory}/generated-sources/mybatis-generator"
-	 * @required
-	 */
+	@Parameter(property = "mybatis.generator.outputDirectory", defaultValue = "${project.build.directory}/generated-sources/mybatis-generator")
 	private File outputDirectory;
 
 	/**
 	 * Location of a SQL script file to run before generating code. If null,
 	 * then no script will be run. If not null, then jdbcDriver, jdbcURL must be
 	 * supplied also, and jdbcUserId and jdbcPassword may be supplied.
-	 * 
-	 * @parameter expression="${mybatis.generator.sqlScript}"
 	 */
+	@Parameter(property = "mybatis.generator.sqlScript")
 	private String sqlScript;
 
 	/**
 	 * JDBC URL to use if a sql.script.file is specified
-	 * 
-	 * @parameter expression="${mybatis.generator.jdbcURL}"
 	 */
+	@Parameter(property = "mybatis.generator.jdbcURL", required = true)
 	private String jdbcURL;
 
 	/**
-	 * JDBC user ID to use if a sql.script.file is specified
-	 * 
-	 * @parameter expression="${mybatis.generator.jdbcUserId}"
+	 * JDBC user ID to use
 	 */
+	@Parameter(property = "mybatis.generator.jdbcUserId")
 	private String jdbcUserId;
 
 	/**
-	 * JDBC password to use if a sql.script.file is specified
-	 * 
-	 * @parameter expression="${mybatis.generator.jdbcPassword}"
+	 * JDBC password to use
 	 */
+	@Parameter(property = "mybatis.generator.jdbcPassword")
 	private String jdbcPassword;
 
 	/**
 	 * Comma delimited list of table names to generate
-	 * 
-	 * @parameter expression="${mybatis.generator.tableNames}"
 	 */
+	@Parameter(property = "mybatis.generator.tableNames")
 	private String tableNames;
 
 	/**
-	 * @parameter expression="${mybatis.generator.database}"
+	 * The application database name
 	 */
+	@Parameter(property = "mybatis.generator.database", required = true)
 	private String database;
 
 	/**
-	 * @parameter expression="${mybatis.generator.databaseName}"
+	 * The database name, mysql, hsqldb etc.
 	 */
+	@Parameter(property = "mybatis.generator.dbName", required = true)
 	private String dbName;
 
 	/**
-	 * @parameter expression="${mybatis.generator.packages}"
+	 * The package for java code generator.
 	 */
+	@Parameter(property = "mybatis.generator.packages", required = true)
 	private String packages;
 
 	/**
-	 * @parameter expression="${mybatis.generator.overwrite}"
+	 * Overwrite the exist code, config file or not.
 	 */
+	@Parameter(property = "mybatis.generator.overwrite", defaultValue = "true")
 	private String overwrite;
 
 	/**
-	 * @parameter expression="${mybatis.generator.sqlTemplatePath}"
-	 *            default-value=
-	 *            "${project.basedir}/src/main/resources/sqltemplate"
+	 * Sql template file path.
 	 */
+	@Parameter(property = "mybatis.generator.sqlTemplatePath", defaultValue = "${project.basedir}/src/main/resources/sqltemplate")
 	private String sqlTemplatePath;
 
 	/**
-	 * @parameter expression="${mybatis.generator.useCache}"
+	 * Use cache or not.
 	 */
+	@Parameter(property = "mybatis.generator.useCache", defaultValue = "false")
 	private String useCache;
 
 	/**
-	 * @parameter expression="${mybatis.generator.generateJdbcConfig}"
+	 * Generate JDBC config file or not.
 	 */
+	@Parameter(property = "mybatis.generator.generateJdbcConfig", defaultValue = "false")
 	private String generateJdbcConfig;
 
 	/**
-	 * @parameter expression="${mybatis.generator.generateSpringConfig}"
+	 * Generate spring xml config file or not.
 	 */
+	@Parameter(property = "mybatis.generator.generateSpringConfig", defaultValue = "false")
 	private String generateSpringConfig;
 
 	/**
-	 * @parameter expression="${mybatis.generator.generateOsgiConfig}"
+	 * Generate spring osgi xml config file or not.
 	 */
+	@Parameter(property = "mybatis.generator.generateOsgiConfig", defaultValue = "false")
 	private String generateOsgiConfig;
 
 	/**
-	 * @parameter expression="${mybatis.generator.properties}"
+	 * Extra config.
 	 */
+	@Parameter(property = "mybatis.generator.properties")
 	private Properties properties;
 
 	private String getJDBCPassword() {

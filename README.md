@@ -171,3 +171,6 @@ overwrite		|overwrite generated file, default false
 ###v 1.0.3
 
 1. modify Java Code generate commment
+2. config commentGenerator property suppressDate false
+3. change @paramter expression to maven annotation
+ 
