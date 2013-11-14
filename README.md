@@ -179,4 +179,7 @@ properties|extra config||false
 1. modify Java Code generate commment
 2. config commentGenerator property suppressDate false
 3. change @paramter expression to maven annotation
+
+###v1.0.4
+1. bugfix 1.0.3. The v1.0.3 has a serious bug when release to maven centeral.
  

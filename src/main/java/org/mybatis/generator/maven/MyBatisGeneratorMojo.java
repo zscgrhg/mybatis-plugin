@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -47,6 +48,7 @@ import com.tqlab.plugin.mybatis.generator.MybatisCreaterImpl;
  * Goal which generates MyBatis/iBATIS artifacts.
  */
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Execute(goal = "generate", phase = LifecyclePhase.GENERATE_SOURCES)
 public class MyBatisGeneratorMojo extends AbstractMojo {
 
 	@Parameter(property = "mybatis.generator.outputDirectory", defaultValue = "${project.build.directory}/generated-sources/mybatis-generator")
