@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mybatis.generator.maven;
+package com.tqlab.plugin.mybatis.maven;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,8 +27,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.mybatis.generator.internal.util.StringUtility;
 import org.mybatis.generator.internal.util.messages.Messages;
 
@@ -39,13 +39,16 @@ import org.mybatis.generator.internal.util.messages.Messages;
  * 
  * @author Jeff Butler
  */
-public class SqlScriptRunner {
+class SqlScriptRunner {
+
+	private static final Logger LOGGER = Logger
+			.getLogger(SqlScriptRunner.class);
+
 	private String driver;
 	private String url;
 	private String userid;
 	private String password;
 	private String sourceFile;
-	private Log log;
 
 	public SqlScriptRunner(String sourceFile, String driver, String url,
 			String userId, String password) throws MojoExecutionException {
@@ -84,7 +87,7 @@ public class SqlScriptRunner {
 			String sql;
 
 			while ((sql = readStatement(br)) != null) {
-				log.info(sql);
+				LOGGER.info(sql);
 				statement.execute(sql);
 			}
 
@@ -140,7 +143,6 @@ public class SqlScriptRunner {
 				statement.close();
 			} catch (SQLException e) {
 				// ignore
-				;
 			}
 		}
 	}
@@ -171,14 +173,10 @@ public class SqlScriptRunner {
 		String s = sb.toString().trim();
 
 		if (s.length() > 0) {
-			log.debug((Messages.getString("Progress.13", s))); //$NON-NLS-1$
+			LOGGER.debug((Messages.getString("Progress.13", s))); //$NON-NLS-1$
 		}
 
 		return s.length() > 0 ? s : null;
-	}
-
-	public void setLog(Log log) {
-		this.log = log;
 	}
 
 	private BufferedReader getScriptReader() throws MojoExecutionException,

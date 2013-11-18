@@ -7,6 +7,8 @@ import java.net.URISyntaxException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.Test;
 
+import com.tqlab.plugin.mybatis.maven.MyBatisGeneratorMojo;
+
 /**
  * 
  * @author John Lee

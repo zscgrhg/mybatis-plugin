@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mybatis.generator.maven;
+package com.tqlab.plugin.mybatis.maven;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -365,7 +365,6 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		SqlScriptRunner scriptRunner = new SqlScriptRunner(sqlScript,
 				database.getDirverClass(), getJDBCUrl(), jdbcUserId,
 				getJDBCPassword());
-		scriptRunner.setLog(getLog());
 		scriptRunner.executeScript();
 	}
 }

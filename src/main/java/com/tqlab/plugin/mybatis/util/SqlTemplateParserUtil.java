@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.tqlab.plugin.mybatis.generator;
+package com.tqlab.plugin.mybatis.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +37,13 @@ import org.mybatis.generator.config.Context;
 import org.mybatis.generator.config.MergeConstants;
 import org.mybatis.generator.internal.types.JdbcTypeNameTranslator;
 import org.xml.sax.SAXException;
+
+import com.tqlab.plugin.mybatis.generator.DbColumn;
+import com.tqlab.plugin.mybatis.generator.DbParam;
+import com.tqlab.plugin.mybatis.generator.DbSelectResult;
+import com.tqlab.plugin.mybatis.generator.DbTable;
+import com.tqlab.plugin.mybatis.generator.DbTableOperation;
+import com.tqlab.plugin.mybatis.generator.SimpleErrorHandler;
 
 /**
  * @author John Lee
@@ -130,7 +137,7 @@ public class SqlTemplateParserUtil {
 		DbTable table = new DbTable();
 		String name = rootElement.attributeValue(NAME);
 
-		LOGGER.info("parse table:" + name);
+		LOGGER.info("parse table :	" + name);
 
 		table.setName(name.toLowerCase());
 
@@ -213,35 +220,32 @@ public class SqlTemplateParserUtil {
 			}
 		}
 
-		if (null != params) {
-			List<Element> list = params.elements(PARAM);
-			if (null != list) {
-				for (Element el : list) {
-					String s = el.getTextTrim();
-					int index = s.indexOf('#');
-					if (index >= 0) {
-						s = s.substring(index + 2);
-					} else {
-						continue;
-					}
-
-					index = s.indexOf('}');
-					String parameter = s.substring(0, index);
-					String ss[] = parameter.split(",");
-					String objectName = null;
-					FullyQualifiedJavaType type = null;
-					if (ss.length == 1) {
-						objectName = s;
-						type = getFullyQualifiedJavaType(null);
-					} else {
-						objectName = ss[0];
-						type = getFullyQualifiedJavaType(parseJdbcTypeName(ss[1]));
-					}
-					DbParam dbParam = new DbParam();
-					dbParam.setObjectName(objectName);
-					dbParam.setType(type);
-					operation.addParams(dbParam);
+		if (null != params && null != params.elements(PARAM)) {
+			for (Element el : (List<Element>) params.elements(PARAM)) {
+				String s = el.getTextTrim();
+				int index = s.indexOf('#');
+				if (index >= 0) {
+					s = s.substring(index + 2);
+				} else {
+					continue;
 				}
+
+				index = s.indexOf('}');
+				String parameter = s.substring(0, index);
+				String ss[] = parameter.split(",");
+				String objectName = null;
+				FullyQualifiedJavaType type = null;
+				if (ss.length == 1) {
+					objectName = s;
+					type = getFullyQualifiedJavaType(null);
+				} else {
+					objectName = ss[0];
+					type = getFullyQualifiedJavaType(parseJdbcTypeName(ss[1]));
+				}
+				DbParam dbParam = new DbParam();
+				dbParam.setObjectName(objectName);
+				dbParam.setType(type);
+				operation.addParams(dbParam);
 			}
 		}
 		return operation;
