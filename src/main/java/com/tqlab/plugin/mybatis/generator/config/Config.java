@@ -14,11 +14,12 @@ import java.util.Properties;
  */
 public class Config {
 
+	private Properties props;
 	private List<CacheConfigItem> items;
 
 	@SuppressWarnings("unchecked")
 	public Config(Properties props) {
-
+		this.props = props;
 		this.items = new ArrayList<CacheConfigItem>();
 
 		Enumeration<String> e = (Enumeration<String>) props.propertyNames();
@@ -36,5 +37,9 @@ public class Config {
 		}
 		return null;
 
+	}
+
+	public boolean isUseCache() {
+		return "true".equalsIgnoreCase((String) props.get("use.cache"));
 	}
 }

@@ -100,22 +100,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 	@Override
 	public boolean clientGenerated(Interface interfaze,
 			TopLevelClass topLevelClass, IntrospectedTable introspectedTable) {
-		// 检测是否配置了cache
-		if ("true".equalsIgnoreCase((String) this.getProperties().get(
-				"use.cache"))) {
-			String cacheValue = config.getCacheValue(interfaze.getType()
-					.getFullyQualifiedName());
-			if (cacheValue != null) {
-				interfaze.addImportedType(new FullyQualifiedJavaType(
-						CACHE_NAMESPACE_FQN));
-
-				StringBuilder sb = new StringBuilder();
-				sb.append("@CacheNamespace(\n").append(cacheValue)
-						.append("\n)");
-				interfaze.addAnnotation(sb.toString());
-			}
-		}
-		// ///////////////////////////////////////////
+		// Check use cache or not
+		this.checkCache(interfaze);
 
 		String tableName = introspectedTable
 				.getAliasedFullyQualifiedTableNameAtRuntime();
@@ -177,6 +163,24 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		}
 
 		return true;
+	}
+
+	private void checkCache(Interface interfaze) {
+		// Check use cache or not
+		if (!config.isUseCache()) {
+			return;
+		}
+
+		String cacheValue = config.getCacheValue(interfaze.getType()
+				.getFullyQualifiedName());
+		if (cacheValue != null) {
+			interfaze.addImportedType(new FullyQualifiedJavaType(
+					CACHE_NAMESPACE_FQN));
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("@CacheNamespace(\n").append(cacheValue).append("\n)");
+			interfaze.addAnnotation(sb.toString());
+		}
 	}
 
 	@Override
@@ -263,15 +267,15 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 	private FullyQualifiedJavaType getSelect(DbTableOperation operation,
 			Interface interfaze, String name) {
+		FullyQualifiedJavaType type = new FullyQualifiedJavaType(name);
+		interfaze.addImportedType(type);
 		if (operation.isMany()) {
-
 			interfaze.addImportedType(new FullyQualifiedJavaType(
 					"java.util.List")); //$NON-NLS-1$
-
 			String s = "java.util.List<" + name + ">";
 			return new FullyQualifiedJavaType(s);
 		} else {
-			return new FullyQualifiedJavaType(name);
+			return type;
 		}
 	}
 
@@ -317,9 +321,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		if (null == list) {
 			list = new ArrayList<String>();
 		}
-
 		try {
-
 			int index = sql.indexOf('#');
 			if (index >= 0) {
 				sql = sql.substring(index + 2);
@@ -329,7 +331,6 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 			index = sql.indexOf('}');
 			String parameter = sql.substring(0, index);
-			// 检查是否已经包含了
 			if (!list.contains(parameter)) {
 				list.add(parameter);
 			}
@@ -377,8 +378,9 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				introspectedColumn, introspectedTable);
 		if (null != javaType) {
 			field.setType(javaType);
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	@Override
@@ -390,8 +392,9 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				introspectedColumn, introspectedTable);
 		if (null != javaType) {
 			method.setReturnType(javaType);
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	@Override
@@ -408,8 +411,9 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			parameter.getAnnotations().addAll(p.getAnnotations());
 			method.getParameters().clear();
 			method.getParameters().add(parameter);
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	private FullyQualifiedJavaType getJavaType(TopLevelClass topLevelClass,
