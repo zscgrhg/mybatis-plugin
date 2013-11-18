@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.maven.plugin.logging.Log;
+import org.apache.log4j.Logger;
 import org.mybatis.generator.api.MyBatisGenerator;
 import org.mybatis.generator.config.Configuration;
 import org.mybatis.generator.config.xml.ConfigurationParser;
@@ -51,11 +51,10 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 	private static final String NEW_LINE = "\r\n";
 
-	private Log logger;
+	private Logger LOGGER = Logger.getLogger(MybatisCreaterImpl.class);
 	private Properties properties;
 
-	public MybatisCreaterImpl(Log logger, Properties properties) {
-		this.logger = logger;
+	public MybatisCreaterImpl(Properties properties) {
 		this.properties = properties;
 	}
 
@@ -193,16 +192,17 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		sb.append("</generatorConfiguration>");
 		sb.append(NEW_LINE);
 
-		logger.info("###################################################################");
-		logger.info(NEW_LINE + NEW_LINE + sb.toString() + NEW_LINE + NEW_LINE);
-		logger.info("###################################################################");
+		LOGGER.info("###################################################################");
+		LOGGER.info(NEW_LINE + NEW_LINE + sb.toString() + NEW_LINE + NEW_LINE);
+		LOGGER.info("###################################################################");
 		// 将字符串转换成2进制流
 		InputStream is = null;
 
 		try {
 			is = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e1) {
-			logger.error("", e1);
+			LOGGER.error("data get btyes error.", e1);
+			return null;
 		}
 
 		List<String> warnings = new ArrayList<String>();
@@ -216,39 +216,41 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config,
 					shellCallback, warnings);
 			myBatisGenerator.generate(null);
+
+			List<MybatisBean> myList = new ArrayList<MybatisBean>();
+			for (String s : tables) {
+				s = getTableName(s);
+				String temp = getObjectName(s);
+				String beanId = temp.substring(0, 1).toLowerCase()
+						+ temp.substring(1) + "Mapper";
+				MybatisBean mybatisBean = new MybatisBean();
+				mybatisBean.setBeanId(beanId);
+				mybatisBean.setBeanName(beanId);
+				mybatisBean
+						.setClassPath(dalPackage + ".dao." + temp + "Mapper");
+				myList.add(mybatisBean);
+			}
+
+			LOGGER.info("##############################################################");
+			LOGGER.info("Create completely");
+			LOGGER.info("##############################################################");
+			return myList;
 		} catch (XMLParserException e) {
 			List<String> errors = e.getErrors();
 			for (String s : errors) {
-				logger.error(s);
+				LOGGER.error(s);
 			}
-			logger.error(e);
+			LOGGER.error(e);
 		} catch (SQLException e) {
-			logger.error(e);
+			LOGGER.error(e);
 		} catch (IOException e) {
-			logger.error(e);
+			LOGGER.error(e);
 		} catch (InterruptedException e) {
-			logger.error(e);
+			LOGGER.error(e);
 		} catch (InvalidConfigurationException e) {
-			logger.error(e);
+			LOGGER.error(e);
 		}
-
-		List<MybatisBean> myList = new ArrayList<MybatisBean>();
-		for (String s : tables) {
-			s = getTableName(s);
-			String temp = getObjectName(s);
-			String beanId = temp.substring(0, 1).toLowerCase()
-					+ temp.substring(1) + "Mapper";
-			MybatisBean mybatisBean = new MybatisBean();
-			mybatisBean.setBeanId(beanId);
-			mybatisBean.setBeanName(beanId);
-			mybatisBean.setClassPath(dalPackage + ".dao." + temp + "Mapper");
-			myList.add(mybatisBean);
-		}
-
-		logger.info("##############################################################");
-		logger.info("Create completely");
-		logger.info("##############################################################");
-		return myList;
+		return null;
 	}
 
 	private String getTableString(final DatabaseEnum dbEnum,

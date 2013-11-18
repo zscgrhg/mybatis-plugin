@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -191,8 +190,6 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				DatabaseEnum.getDatabaseEnum(dbName), database, getJDBCUrl(),
 				jdbcUserId, getJDBCPassword());
 
-		List<String> warnings = new ArrayList<String>();
-
 		runScriptIfNecessary(databaseObj);
 
 		Set<String> fullyqualifiedTables = new HashSet<String>();
@@ -218,12 +215,15 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 			properties.putAll(this.properties);
 
 			String tablesArray[] = fullyqualifiedTables.toArray(new String[0]);
-			MybatisCreater creater = new MybatisCreaterImpl(getLog(),
-					properties);
+			MybatisCreater creater = new MybatisCreaterImpl(properties);
 			List<MybatisBean> list = creater.create(databaseObj, getJDBCUrl(),
 					database, jdbcUserId, getJDBCPassword(), packages,
 					outputDirectory.getAbsolutePath(), isOverwrite(),
 					tablesArray);
+			if (null == list || list.size() == 0) {
+				return;
+			}
+
 			if ("true".equalsIgnoreCase(generateJdbcConfig)) {
 				// /////////////////////////////////////////////////////////////
 				// jdbc.properties
@@ -277,24 +277,9 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 						"common-dal-osgi.xml", "common-dal-osgi.template",
 						"${osgi}", replaceBuf.toString(), isOverwrite());
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new MojoExecutionException(e.getMessage());
+		} catch (IOException e) {
+			throw new MojoExecutionException("", e);
 		}
-
-		for (String error : warnings) {
-			getLog().warn(error);
-		}
-
-		// if (project != null && outputDirectory != null
-		// && outputDirectory.exists()) {
-		// project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
-		//
-		// Resource resource = new Resource();
-		// resource.setDirectory(outputDirectory.getAbsolutePath());
-		// resource.addInclude("**/*.xml");
-		// project.addResource(resource);
-		// }
 	}
 
 	private void write(String outDir, String fileName, String templateName,
@@ -382,9 +367,5 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				getJDBCPassword());
 		scriptRunner.setLog(getLog());
 		scriptRunner.executeScript();
-	}
-
-	public File getOutputDirectory() {
-		return outputDirectory;
 	}
 }
