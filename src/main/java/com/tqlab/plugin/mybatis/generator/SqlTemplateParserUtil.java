@@ -4,14 +4,26 @@
 package com.tqlab.plugin.mybatis.generator;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.URL;
 import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.mybatis.generator.api.GeneratedJavaFile;
 import org.mybatis.generator.api.dom.DefaultJavaFormatter;
 import org.mybatis.generator.api.dom.java.Field;
@@ -24,6 +36,9 @@ import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.mybatis.generator.config.Context;
 import org.mybatis.generator.config.MergeConstants;
 import org.mybatis.generator.internal.types.JdbcTypeNameTranslator;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * @author John Lee
@@ -49,24 +64,105 @@ public class SqlTemplateParserUtil {
 	private static final String JAVA_PROPERTY = "javaProperty";
 	private static final String COLUMN = "column";
 
+	private static final String MYBATIS_XSD_LOCAL = "/com/tqlab/plugin/mybatis/tqlab-mybatis-plugin.xsd";
+	private static final String MYBATIS_XSD_REMOTE = "http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd";
+
+	private static SAXReader getSAXReader() throws SAXException,
+			ParserConfigurationException {
+		// Check remote xsd file exit or not
+		InputStream is = null;
+		try {
+			URL url = new URL(MYBATIS_XSD_REMOTE);
+			is = url.openStream();
+		} catch (IOException e) {
+			// e.printStackTrace();
+		}
+		SAXReader reader = null;
+		if (null == is) {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			SchemaFactory schemaFactory = SchemaFactory
+					.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+			factory.setSchema(schemaFactory
+					.newSchema(new Source[] { new StreamSource(
+							SqlTemplateParserUtil.class
+									.getResourceAsStream(MYBATIS_XSD_LOCAL)) }));
+			SAXParser parser = factory.newSAXParser();
+			reader = new SAXReader(parser.getXMLReader());
+			reader.setValidation(false);
+		} else {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			factory.setValidating(true);
+			SAXParser parser = factory.newSAXParser();
+			reader = new SAXReader(parser.getXMLReader());
+			reader.setValidation(true);
+			// request XML Schema validation
+			reader.setFeature(
+					"http://apache.org/xml/features/validation/schema", true);
+		}
+
+		return reader;
+	}
+
+	private static Document getDocument(File file) {
+		try {
+
+			SAXReader reader = getSAXReader();
+
+			reader.setErrorHandler(new ErrorHandler() {
+
+				@Override
+				public void warning(SAXParseException exception)
+						throws SAXException {
+					System.out.println(exception.toString());
+				}
+
+				@Override
+				public void error(SAXParseException exception)
+						throws SAXException {
+					throw new RuntimeException(exception);
+				}
+
+				@Override
+				public void fatalError(SAXParseException exception)
+						throws SAXException {
+					throw new RuntimeException(exception);
+				}
+			});
+
+			Document document = reader.read(file);
+			return document;
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		} finally {
+
+		}
+		System.err.println("Parse xml file error. File:" + file);
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
 	public static DbTable parseDbTable(Context context, File file,
 			Map<String, GeneratedJavaFile> maps) {
+
+		Document document = getDocument(file);
 		try {
-			SAXBuilder sb = new SAXBuilder();
-			Document document = sb.build(file);
 			Element rootElement = document.getRootElement();
 			if (TABLE.equalsIgnoreCase(rootElement.getName())) {
 				DbTable table = new DbTable();
-				String name = rootElement.getAttributeValue(NAME);
+				String name = rootElement.attributeValue(NAME);
+				System.out.println(name);
 				table.setName(name.toLowerCase());
 
-				List<Element> list = rootElement.getChildren();
+				List<Element> list = rootElement.elements();
 				for (Element e : list) {
 					if (COLUMN.equalsIgnoreCase(e.getName())) {
-						String columnName = e.getAttributeValue(NAME);
-						String javaProperty = e
-								.getAttributeValue(JAVA_PROPERTY);
-						String columnJavaType = e.getAttributeValue(JAVA_TYPE);
+						String columnName = e.attributeValue(NAME);
+						String javaProperty = e.attributeValue(JAVA_PROPERTY);
+						String columnJavaType = e.attributeValue(JAVA_TYPE);
 
 						DbColumn column = new DbColumn();
 						column.setJavaType(columnJavaType);
@@ -92,10 +188,10 @@ public class SqlTemplateParserUtil {
 				}
 				return table;
 			}
+			return null;
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
-		return null;
 	}
 
 	/**
@@ -107,16 +203,17 @@ public class SqlTemplateParserUtil {
 	 * @param maps
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	private static DbTableOperation parseDbTableOperation(Element e,
 			Context context, List<DbSelectResult> results,
 			Map<String, GeneratedJavaFile> maps) {
-		String id = e.getAttributeValue(ID);
-		String many = e.getAttributeValue(MANY);
-		String resultType = e.getAttributeValue(RESULT_TYPE);
-		String sql = e.getChild(SQL).getTextTrim();
-		Element result = e.getChild(RESULT);
-		Element comment = e.getChild(COMMNET);
-		Element params = e.getChild(PARAMS);
+		String id = e.attributeValue(ID);
+		String many = e.attributeValue(MANY);
+		String resultType = e.attributeValue(RESULT_TYPE);
+		String sql = e.elementText(SQL);
+		Element result = e.element(RESULT);
+		Element comment = e.element(COMMNET);
+		Element params = e.element(PARAMS);
 		if (null == id || null == sql) {
 			return null;
 		}
@@ -149,7 +246,7 @@ public class SqlTemplateParserUtil {
 		}
 
 		if (null != params) {
-			List<Element> list = params.getChildren(PARAM);
+			List<Element> list = params.elements(PARAM);
 			if (null != list) {
 				for (Element el : list) {
 					String s = el.getTextTrim();
@@ -191,10 +288,11 @@ public class SqlTemplateParserUtil {
 	 * @param maps
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	private static DbSelectResult parseDbSelectResult(Element result,
 			String resultType, Context context,
 			Map<String, GeneratedJavaFile> maps) {
-		String objectName = result.getAttributeValue(OBJECT_NAME);
+		String objectName = result.attributeValue(OBJECT_NAME);
 		DbSelectResult dbSelectResult = new DbSelectResult();
 		dbSelectResult.setObjectName(objectName);
 		String basicPackage = context.getJavaModelGeneratorConfiguration()
@@ -228,12 +326,12 @@ public class SqlTemplateParserUtil {
 							.getTargetProject(), formatter);
 			topLevelClass.setVisibility(JavaVisibility.PUBLIC);
 
-			List<Element> properties = result.getChildren(PROPERTY);
+			List<Element> properties = result.elements(PROPERTY);
 			for (Element el : properties) {
 
-				String javaType = el.getAttributeValue(JAVA_TYPE);
-				String javaProperty = el.getAttributeValue(JAVA_PROPERTY);
-				String column = el.getAttributeValue(COLUMN);
+				String javaType = el.attributeValue(JAVA_TYPE);
+				String javaProperty = el.attributeValue(JAVA_PROPERTY);
+				String column = el.attributeValue(COLUMN);
 				processProperty(topLevelClass, column, javaProperty, javaType);
 				dbSelectResult.addDbColumn(column, javaProperty, javaType);
 			}
@@ -244,11 +342,11 @@ public class SqlTemplateParserUtil {
 			FullyQualifiedJavaType fullyQualifiedJavaType = getFullyQualifiedJavaType(
 					context, resultType);
 
-			List<Element> properties = result.getChildren(PROPERTY);
+			List<Element> properties = result.elements(PROPERTY);
 			for (Element el : properties) {
-				String javaType = el.getAttributeValue(JAVA_TYPE);
-				String javaProperty = el.getAttributeValue(JAVA_PROPERTY);
-				String column = el.getAttributeValue(COLUMN);
+				String javaType = el.attributeValue(JAVA_TYPE);
+				String javaProperty = el.attributeValue(JAVA_PROPERTY);
+				String column = el.attributeValue(COLUMN);
 				dbSelectResult.addDbColumn(column, javaProperty, javaType);
 			}
 			dbSelectResult.setType(fullyQualifiedJavaType);

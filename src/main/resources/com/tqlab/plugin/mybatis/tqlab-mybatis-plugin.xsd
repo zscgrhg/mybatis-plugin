@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns="http://schema.tqlab.com/mybatis"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://schema.tqlab.com/mybatis">
+    
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    
+    <xsd:annotation>
+        <xsd:documentation>
+            <![CDATA[
+            Mybatis generator sql template Schema. 
+            ]]>
+        </xsd:documentation>
+    </xsd:annotation>
+    
+    <xsd:element name="property">
+        <xsd:complexType>
+            <xsd:attribute name="column" type="xsd:NCName" use="required"/>
+            <xsd:attribute name="javaProperty" type="xsd:NCName" use="required"/>
+            <xsd:attribute name="javaType" type="JavaFullClassName" use="required"/>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="result">
+        <xsd:complexType>
+            <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                <xsd:element ref="property"/>
+            </xsd:sequence>
+            <xsd:attribute name="objectName" type="JavaFullClassName" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="column">
+        <xsd:complexType>
+            <xsd:attribute name="name" type="xsd:NCName" use="required" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <![CDATA[
+                    Specify a specific java property of the column
+                    ]]>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="javaType" type="JavaFullClassName" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="param" type="MapperParam">
+        <xsd:annotation>
+            <xsd:documentation>
+                <![CDATA[
+                Specify certain parameters for Mybatis Mapper function. For example #{keyword,jdbcType=VARCHAR} .
+                ]]>
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="params">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="param" minOccurs="1" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:element name="sql" type="Sql">
+        <xsd:annotation>
+            <xsd:documentation>
+                <![CDATA[
+                For example, use mybatis origin SQL Mapping :
+                <![CDATA[
+     			<script>
+     				select * test_db where id in 
+     				<foreach item="idList" index="index" collection="list" open="(" separator="," close=")">
+     					#{idList,jdbcType=ARRAY}
+     				</foreach>
+     				order by id desc
+     			</script>
+			    ]] >;
+                ]]>
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="comment" type="xsd:string">
+        
+    </xsd:element>
+    
+    <xsd:element name="operation">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="comment" minOccurs="0" maxOccurs="1" />
+                <xsd:element ref="params" minOccurs="0" maxOccurs="1" />
+                <xsd:element ref="result" minOccurs="0" maxOccurs="1"/>
+                <xsd:element ref="sql" minOccurs="1" maxOccurs="1" />
+            </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:ID" use="required">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <![CDATA[ 
+                        The unique identifier for a mybatis Mapper. 
+                        ]]>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="many" type="xsd:boolean" default="true"/>
+            <xsd:attribute name="resultType" type="JavaFullClassName" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+    
+    <!--  Top-level <table> tag  -->
+    <xsd:element name="table">
+        <xsd:annotation>
+            <xsd:documentation>
+                <![CDATA[
+                The table to generate Mybatis java Mapper.
+                ]]>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="column" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:element ref="result" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:element ref="operation" minOccurs="1" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute name="name" type="xsd:NCName" use="required"/>
+        </xsd:complexType>
+    </xsd:element>
+    
+    <xsd:simpleType name="JavaFullClassName">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="([A-Za-z_]+[0-9]*\.)*([A-Za-z_])[a-zA-Z0-9_]*"></xsd:pattern>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="MapperParam">
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="#\{[A-Za-z_]+[a-zA-z0-9_]*\s*,\s*jdbcType=[A-Z]+\}"></xsd:pattern>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="Sql">
+        <xsd:annotation>
+            <xsd:documentation>
+                <![CDATA[
+                Sql Type
+                ]]>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:pattern value="[\s\S]+"></xsd:pattern>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>
