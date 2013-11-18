@@ -6,7 +6,7 @@ Mybatis Generator Plugin Extension
 <dependency>
     <groupId>com.tqlab.plugin</groupId>
     <artifactId>tqlab-mybatis-plugin</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
@@ -183,3 +183,5 @@ properties|extra config||false
 ###v1.0.4
 1. bugfix 1.0.3. The v1.0.3 has a serious bug when release to maven centeral.
  
+###v1.0.5
+1. Add mybatis sql template xml Scheam support.
