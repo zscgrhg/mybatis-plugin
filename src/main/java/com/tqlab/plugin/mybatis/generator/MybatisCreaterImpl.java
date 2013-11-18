@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -90,10 +89,9 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 		StringBuffer buf = new StringBuffer();
 
-		List<String> list = Arrays.asList(tables);
-		for (Iterator<String> i = list.iterator(); i.hasNext();) {
+		for (String name : tables) {
 			buf.append(getTableString(database.getDatabaseEnum(), database,
-					i.next()));
+					name));
 		}
 		database.close();
 
@@ -211,6 +209,7 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		try {
 			ConfigurationParser cp = new ConfigurationParser(warnings);
 			Configuration config = cp.parseConfiguration(is);
+
 			DefaultShellCallback shellCallback = new DefaultShellCallback(
 					overwrite);
 
@@ -234,19 +233,16 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		}
 
 		List<MybatisBean> myList = new ArrayList<MybatisBean>();
-		if (null != list) {
-			for (String s : list) {
-				s = getTableName(s);
-				String temp = getObjectName(s);
-				String beanId = temp.substring(0, 1).toLowerCase()
-						+ temp.substring(1) + "Mapper";
-				MybatisBean mybatisBean = new MybatisBean();
-				mybatisBean.setBeanId(beanId);
-				mybatisBean.setBeanName(beanId);
-				mybatisBean
-						.setClassPath(dalPackage + ".dao." + temp + "Mapper");
-				myList.add(mybatisBean);
-			}
+		for (String s : tables) {
+			s = getTableName(s);
+			String temp = getObjectName(s);
+			String beanId = temp.substring(0, 1).toLowerCase()
+					+ temp.substring(1) + "Mapper";
+			MybatisBean mybatisBean = new MybatisBean();
+			mybatisBean.setBeanId(beanId);
+			mybatisBean.setBeanName(beanId);
+			mybatisBean.setClassPath(dalPackage + ".dao." + temp + "Mapper");
+			myList.add(mybatisBean);
 		}
 
 		logger.info("##############################################################");
@@ -255,14 +251,14 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		return myList;
 	}
 
-	private String getTableString(DatabaseEnum dbEnum, Database database,
-			String tableName) {
-		tableName = getTableName(tableName);
-		ColumnResult result = database.getColumns(tableName);
+	private String getTableString(final DatabaseEnum dbEnum,
+			final Database database, final String tableName) {
+		String name = getTableName(tableName);
+		ColumnResult result = database.getColumns(name);
 		StringBuffer sb = new StringBuffer();
 		sb.append("    <table ");
-		sb.append("tableName=\"" + tableName + "\" ");
-		sb.append("domainObjectName=\"" + getObjectName(tableName) + "\" ");
+		sb.append("tableName=\"" + name + "\" ");
+		sb.append("domainObjectName=\"" + getObjectName(name) + "\" ");
 		sb.append("escapeWildcards=\"true\" ");
 		sb.append("enableSelectByExample=\"false\" ");
 		sb.append("enableDeleteByExample=\"false\" ");

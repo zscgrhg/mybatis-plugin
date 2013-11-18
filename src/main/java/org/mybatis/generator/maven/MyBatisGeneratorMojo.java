@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Execute;
@@ -167,11 +168,24 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		return this.jdbcURL;
 	}
 
+	private void loadLog4j() {
+		try {
+			Properties props = new Properties();
+			props.load(getClass().getResourceAsStream(
+					"/com/tqlab/plugin/mybatis/log4j.properties"));
+			PropertyConfigurator.configure(props);
+		} catch (IOException e1) {
+			getLog().warn("load log4j.properties error.");
+		}
+	}
+
 	public void execute() throws MojoExecutionException {
 
 		if (null == dbName) {
 			return;
 		}
+		// load log4j
+		loadLog4j();
 
 		Database databaseObj = new DatabaseFactoryImpl().getDatabase(
 				DatabaseEnum.getDatabaseEnum(dbName), database, getJDBCUrl(),

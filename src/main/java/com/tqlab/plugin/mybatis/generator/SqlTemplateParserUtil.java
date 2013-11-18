@@ -20,8 +20,8 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.mybatis.generator.api.GeneratedJavaFile;
@@ -36,15 +36,16 @@ import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.mybatis.generator.config.Context;
 import org.mybatis.generator.config.MergeConstants;
 import org.mybatis.generator.internal.types.JdbcTypeNameTranslator;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  * @author John Lee
  * 
  */
 public class SqlTemplateParserUtil {
+
+	private static final Logger LOGGER = Logger
+			.getLogger(SqlTemplateParserUtil.class);
 
 	private static final String TABLE = "table";
 	private static final String NAME = "name";
@@ -66,6 +67,7 @@ public class SqlTemplateParserUtil {
 
 	private static final String MYBATIS_XSD_LOCAL = "/com/tqlab/plugin/mybatis/tqlab-mybatis-plugin.xsd";
 	private static final String MYBATIS_XSD_REMOTE = "http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd";
+	private static final String FEATURE = "http://apache.org/xml/features/validation/schema";
 
 	private static SAXReader getSAXReader() throws SAXException,
 			ParserConfigurationException {
@@ -75,123 +77,89 @@ public class SqlTemplateParserUtil {
 			URL url = new URL(MYBATIS_XSD_REMOTE);
 			is = url.openStream();
 		} catch (IOException e) {
-			// e.printStackTrace();
+			is = null;
+			LOGGER.warn("Read file: " + MYBATIS_XSD_REMOTE + " error.");
 		}
 		SAXReader reader = null;
+		SAXParserFactory factory = SAXParserFactory.newInstance();
 		if (null == is) {
-			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SchemaFactory schemaFactory = SchemaFactory
 					.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			factory.setSchema(schemaFactory
-					.newSchema(new Source[] { new StreamSource(
-							SqlTemplateParserUtil.class
-									.getResourceAsStream(MYBATIS_XSD_LOCAL)) }));
+			Source sources[] = new Source[] { new StreamSource(
+					SqlTemplateParserUtil.class
+							.getResourceAsStream(MYBATIS_XSD_LOCAL)) };
+			factory.setSchema(schemaFactory.newSchema(sources));
 			SAXParser parser = factory.newSAXParser();
 			reader = new SAXReader(parser.getXMLReader());
 			reader.setValidation(false);
 		} else {
-			SAXParserFactory factory = SAXParserFactory.newInstance();
 			factory.setValidating(true);
 			SAXParser parser = factory.newSAXParser();
 			reader = new SAXReader(parser.getXMLReader());
 			reader.setValidation(true);
 			// request XML Schema validation
-			reader.setFeature(
-					"http://apache.org/xml/features/validation/schema", true);
+			reader.setFeature(FEATURE, true);
 		}
 
 		return reader;
-	}
-
-	private static Document getDocument(File file) {
-		try {
-
-			SAXReader reader = getSAXReader();
-
-			reader.setErrorHandler(new ErrorHandler() {
-
-				@Override
-				public void warning(SAXParseException exception)
-						throws SAXException {
-					System.out.println(exception.toString());
-				}
-
-				@Override
-				public void error(SAXParseException exception)
-						throws SAXException {
-					throw new RuntimeException(exception);
-				}
-
-				@Override
-				public void fatalError(SAXParseException exception)
-						throws SAXException {
-					throw new RuntimeException(exception);
-				}
-			});
-
-			Document document = reader.read(file);
-			return document;
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (DocumentException e) {
-			e.printStackTrace();
-		} finally {
-
-		}
-		System.err.println("Parse xml file error. File:" + file);
-		return null;
 	}
 
 	@SuppressWarnings("unchecked")
 	public static DbTable parseDbTable(Context context, File file,
 			Map<String, GeneratedJavaFile> maps) {
 
-		Document document = getDocument(file);
+		Document document = null;
 		try {
-			Element rootElement = document.getRootElement();
-			if (TABLE.equalsIgnoreCase(rootElement.getName())) {
-				DbTable table = new DbTable();
-				String name = rootElement.attributeValue(NAME);
-				System.out.println(name);
-				table.setName(name.toLowerCase());
-
-				List<Element> list = rootElement.elements();
-				for (Element e : list) {
-					if (COLUMN.equalsIgnoreCase(e.getName())) {
-						String columnName = e.attributeValue(NAME);
-						String javaProperty = e.attributeValue(JAVA_PROPERTY);
-						String columnJavaType = e.attributeValue(JAVA_TYPE);
-
-						DbColumn column = new DbColumn();
-						column.setJavaType(columnJavaType);
-						column.setName(columnName);
-						column.setJavaProperty(javaProperty);
-						table.getColumns().add(column);
-					} else if (RESULT.equalsIgnoreCase(e.getName())) {
-						DbSelectResult dbSelectResult = parseDbSelectResult(e,
-								null, context, maps);
-						table.getSelectResults().add(dbSelectResult);
-					}
-				}
-
-				for (Element e : list) {
-					if (OPERATION.equalsIgnoreCase(e.getName())) {
-						DbTableOperation operation = parseDbTableOperation(e,
-								context, table.getSelectResults(), maps);
-						if (null == operation) {
-							continue;
-						}
-						table.getOperations().add(operation);
-					}
-				}
-				return table;
-			}
-			return null;
+			SAXReader reader = getSAXReader();
+			reader.setErrorHandler(new SimpleErrorHandler());
+			//
+			document = reader.read(file);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			LOGGER.error("Parse sql template file error. File :" + file, e);
 		}
+
+		if (null == document) {
+			return null;
+		}
+
+		Element rootElement = document.getRootElement();
+		if (!TABLE.equalsIgnoreCase(rootElement.getName())) {
+			return null;
+		}
+		//
+		DbTable table = new DbTable();
+		String name = rootElement.attributeValue(NAME);
+
+		LOGGER.info("parse table:" + name);
+
+		table.setName(name.toLowerCase());
+
+		List<Element> list = rootElement.elements();
+		for (Element e : list) {
+			if (COLUMN.equalsIgnoreCase(e.getName())) {
+				String columnName = e.attributeValue(NAME);
+				String javaProperty = e.attributeValue(JAVA_PROPERTY);
+				String columnJavaType = e.attributeValue(JAVA_TYPE);
+
+				DbColumn column = new DbColumn();
+				column.setJavaType(columnJavaType);
+				column.setName(columnName);
+				column.setJavaProperty(javaProperty);
+				table.getColumns().add(column);
+			} else if (RESULT.equalsIgnoreCase(e.getName())) {
+				DbSelectResult dbSelectResult = parseDbSelectResult(e, null,
+						context, maps);
+				table.getSelectResults().add(dbSelectResult);
+			} else if (OPERATION.equalsIgnoreCase(e.getName())) {
+				DbTableOperation operation = parseDbTableOperation(e, context,
+						table.getSelectResults(), maps);
+				if (null == operation) {
+					continue;
+				}
+				table.getOperations().add(operation);
+			}
+		}
+		return table;
 	}
 
 	/**
@@ -468,21 +436,21 @@ public class SqlTemplateParserUtil {
 		case Types.TINYINT:
 		case Types.SMALLINT:
 		case Types.INTEGER: {
-			return new FullyQualifiedJavaType("java.lang.Integer");
+			return new FullyQualifiedJavaType(Integer.class.getName());
 		}
 		case Types.BIGINT: {
-			return new FullyQualifiedJavaType("java.lang.Long");
+			return new FullyQualifiedJavaType(Long.class.getName());
 		}
 		case Types.CHAR: {
-			return new FullyQualifiedJavaType("java.lang.Character");
+			return new FullyQualifiedJavaType(Character.class.getName());
 		}
 		case Types.DECIMAL:
 		case Types.NUMERIC:
 		case Types.DOUBLE: {
-			return new FullyQualifiedJavaType("java.lang.Double");
+			return new FullyQualifiedJavaType(Double.class.getName());
 		}
 		case Types.FLOAT: {
-			return new FullyQualifiedJavaType("java.lang.Float");
+			return new FullyQualifiedJavaType(Float.class.getName());
 		}
 		case Types.VARCHAR:
 		case Types.NVARCHAR:
@@ -501,11 +469,11 @@ public class SqlTemplateParserUtil {
 			return FullyQualifiedJavaType.getDateInstance();
 		}
 		case Types.ARRAY: {
-			return new FullyQualifiedJavaType("java.lang.List");
+			return new FullyQualifiedJavaType(List.class.getName());
 		}
 		case Types.JAVA_OBJECT:
 		default: {
-			return new FullyQualifiedJavaType("java.lang.Object");
+			return new FullyQualifiedJavaType(Object.class.getName());
 		}
 		}
 	}

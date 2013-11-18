@@ -118,7 +118,7 @@ public abstract class AbstractDatabase implements Database {
 					primaryKeys.add(primaryKey);
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			} finally {
 				try {
 					if (res != null)

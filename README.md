@@ -185,3 +185,5 @@ properties|extra config||false
  
 ###v1.0.5
 1. Add mybatis sql template xml Scheam support.
+2. Add log4j support when generate Java Mapper.
+3. Add tableNames validate.
