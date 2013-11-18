@@ -378,9 +378,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				introspectedColumn, introspectedTable);
 		if (null != javaType) {
 			field.setType(javaType);
-			return true;
 		}
-		return false;
+		return true;
 	}
 
 	@Override
@@ -392,9 +391,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				introspectedColumn, introspectedTable);
 		if (null != javaType) {
 			method.setReturnType(javaType);
-			return true;
 		}
-		return false;
+		return true;
 	}
 
 	@Override
@@ -411,9 +409,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			parameter.getAnnotations().addAll(p.getAnnotations());
 			method.getParameters().clear();
 			method.getParameters().add(parameter);
-			return true;
 		}
-		return false;
+		return true;
 	}
 
 	private FullyQualifiedJavaType getJavaType(TopLevelClass topLevelClass,
