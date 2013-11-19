@@ -10,6 +10,7 @@ eclipse_config
 .settings
 */.settings
 .checkstyle
+reports
 
 # Intelli-J
 *.iml

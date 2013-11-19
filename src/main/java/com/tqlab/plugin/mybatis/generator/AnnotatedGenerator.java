@@ -31,16 +31,17 @@ import org.mybatis.generator.api.dom.java.Interface;
 import org.mybatis.generator.api.dom.java.Method;
 import org.mybatis.generator.codegen.mybatis3.javamapper.elements.AbstractJavaMapperMethodGenerator;
 
+import com.tqlab.plugin.mybatis.MybatisPluginException;
+
 /**
  * @author John Lee
  * 
  */
-public class AnnotatedJavaMapperMethodGenerator extends
-		AbstractJavaMapperMethodGenerator {
+public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 
 	private boolean useResultMapIfAvailable;
 
-	public AnnotatedJavaMapperMethodGenerator(boolean useResultMapIfAvailable) {
+	public AnnotatedGenerator(boolean useResultMapIfAvailable) {
 		super();
 
 		this.useResultMapIfAvailable = useResultMapIfAvailable;
@@ -218,7 +219,8 @@ public class AnnotatedJavaMapperMethodGenerator extends
 
 		if (!tableName.equalsIgnoreCase(introspectedTable
 				.getAliasedFullyQualifiedTableNameAtRuntime())) {
-			throw new RuntimeException("table name " + tableName + " error.");
+			throw new MybatisPluginException("table name " + tableName
+					+ " error.");
 		}
 
 		index = temp.indexOf("from");

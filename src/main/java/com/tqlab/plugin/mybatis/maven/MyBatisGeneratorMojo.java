@@ -155,16 +155,12 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	}
 
 	private String getJDBCUrl() {
-		DatabaseEnum databaseEnum = DatabaseEnum.getDatabaseEnum(dbName);
-		switch (databaseEnum) {
-		case HSQLDB: {
-			return jdbcURL.replace("\\", "/");
+		final DatabaseEnum databaseEnum = DatabaseEnum.getDatabaseEnum(dbName);
+		String jdbcURL = this.jdbcURL;
+		if (databaseEnum == DatabaseEnum.HSQLDB) {
+			jdbcURL = jdbcURL.replace("\\", "/");
 		}
-		default: {
-			//
-		}
-		}
-		return this.jdbcURL;
+		return jdbcURL;
 	}
 
 	private void loadLog4j() {

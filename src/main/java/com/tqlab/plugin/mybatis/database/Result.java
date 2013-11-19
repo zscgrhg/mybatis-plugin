@@ -22,11 +22,14 @@ import java.io.Serializable;
  * @author John Lee
  * 
  */
-public class Result implements Serializable{
+public class Result implements Serializable {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2752695942117258445L;
 
+	public Result() {
+
+	}
 }

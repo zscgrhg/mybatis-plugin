@@ -14,13 +14,20 @@ public class HsqldbDatabase extends AbstractDatabase {
 
 	private static final String DRIVER = "org.hsqldb.jdbcDriver";
 
-	public HsqldbDatabase(String database, String url, String user,
-			String password) {
+	/**
+	 * 
+	 * @param database
+	 * @param url
+	 * @param user
+	 * @param password
+	 */
+	public HsqldbDatabase(final String database, final String url,
+			final String user, final String password) {
 		super(DRIVER, database, url, user, password);
 	}
 
 	@Override
-	protected String getQuerySql() {
+	protected String getTablesQuerySql() {
 		return "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_TABLES where TABLE_TYPE='TABLE';";
 	}
 
@@ -48,7 +55,7 @@ public class HsqldbDatabase extends AbstractDatabase {
 	}
 
 	@Override
-	protected String getColumnsSql(String tableName) {
+	protected String getColumnsQuerySql(String tableName) {
 		if (null == tableName) {
 			return null;
 		}

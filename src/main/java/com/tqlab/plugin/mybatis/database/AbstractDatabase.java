@@ -26,17 +26,28 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import com.tqlab.plugin.mybatis.MybatisPluginException;
+
 /**
  * @author John Lee
  * 
  */
 public abstract class AbstractDatabase implements Database {
 
+	private static final Logger LOGGER = Logger
+			.getLogger(AbstractDatabase.class);
+
 	private String driverClass;
 	private String database;
 	private String url;
 	private String user;
 	private String password;
+	/**
+	 * Database connection
+	 */
+	private Connection conn;
 
 	public AbstractDatabase(String driverClass, String database, String url,
 			String user, String password) {
@@ -47,15 +58,13 @@ public abstract class AbstractDatabase implements Database {
 		this.password = password;
 	}
 
-	private static Connection conn = null;
-
 	/**
-	 * 获取数据库连接。
+	 * 
 	 * 
 	 * @return
 	 * @throws SQLException
 	 */
-	protected Connection getConnection() {
+	protected Connection getConnection() throws SQLException {
 		try {
 			if (null != conn && !conn.isClosed()) {
 				return conn;
@@ -63,11 +72,7 @@ public abstract class AbstractDatabase implements Database {
 			Class.forName(driverClass);
 			conn = DriverManager.getConnection(url, user, password);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+			throw new MybatisPluginException(e);
 		}
 		return conn;
 	}
@@ -75,116 +80,129 @@ public abstract class AbstractDatabase implements Database {
 	/*
 	 * (non-Javadoc)
 	 */
-	public ColumnResult getColumns(String tableName) {
+	public ColumnResult getColumns(final String tableName) {
 
-		ColumnResult result = new ColumnResult();
+		final ColumnResult result = new ColumnResult();
 
-		List<String> columns = new ArrayList<String>();
-		List<String> primaryKeys = new ArrayList<String>();
-		List<String> autoIncrementPrimaryKeys = new ArrayList<String>();
+		final List<String> columns = new ArrayList<String>();
+		final List<String> primaryKeys = new ArrayList<String>();
+		final List<String> autoIncrementPK = new ArrayList<String>();
 
-		Connection conn = this.getConnection();
-		if (conn != null) {
-			Statement stmt = null;
-			ResultSet res = null;
-			try {
-				stmt = conn.createStatement();
-				String sql = getColumnsSql(tableName);
-				res = stmt.executeQuery(sql);
-				ResultSetMetaData rsmd = res.getMetaData();
-				int colcount = rsmd.getColumnCount();// 取得全部列数
-
-				List<String> autoIncrementColumn = new ArrayList<String>();
-				for (int i = 1; i <= colcount; i++) {
-
-					columns.add(getColumnName(rsmd.getColumnName(i)));
-					// Indicates whether the designated column is automatically
-					// numbered.
-					if (rsmd.isAutoIncrement(i)) {
-						autoIncrementColumn.add(getColumnName(rsmd
-								.getColumnName(i)));
-					}
-				}
-
-				res.close();
-
-				DatabaseMetaData dbmd = conn.getMetaData();
-				res = dbmd.getPrimaryKeys(null, null, tableName);
-				while (res.next()) {
-					String primaryKey = res.getString("COLUMN_NAME");
-					if (autoIncrementColumn.contains(primaryKey)) {
-						autoIncrementPrimaryKeys.add(primaryKey);
-					}
-					primaryKeys.add(primaryKey);
-				}
-			} catch (SQLException e) {
-				throw new RuntimeException(e);
-			} finally {
-				try {
-					if (res != null)
-						res.close();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-
-				try {
-					if (stmt != null)
-						stmt.close();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-		}
 		result.setTableName(tableName);
 		result.setColumns(columns);
-		result.setAutoIncrementPrimaryKeys(autoIncrementPrimaryKeys);
+		result.setAutoIncrementPrimaryKeys(autoIncrementPK);
 		result.setPrimaryKeys(primaryKeys);
+
+		Statement stmt = null;
+		ResultSet res = null;
+		try {
+			final Connection conn = this.getConnection();
+			stmt = conn.createStatement();
+			String sql = getColumnsQuerySql(tableName);
+			res = stmt.executeQuery(sql);
+			ResultSetMetaData rsmd = res.getMetaData();
+			int colcount = rsmd.getColumnCount();// 取得全部列数
+
+			List<String> autoIncrementColumn = new ArrayList<String>();
+			for (int i = 1; i <= colcount; i++) {
+				String column = getColumnName(rsmd.getColumnName(i));
+				columns.add(column);
+				// Indicates whether the designated column is automatically
+				// numbered.
+				if (rsmd.isAutoIncrement(i)) {
+					autoIncrementColumn.add(column);
+				}
+			}
+
+			res.close();
+
+			DatabaseMetaData dbmd = conn.getMetaData();
+			res = dbmd.getPrimaryKeys(null, null, tableName);
+			while (res.next()) {
+				String primaryKey = res.getString("COLUMN_NAME");
+				if (autoIncrementColumn.contains(primaryKey)) {
+					autoIncrementPK.add(primaryKey);
+				}
+				primaryKeys.add(primaryKey);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(e);
+		} finally {
+			releaseDbQuery(stmt, res);
+		}
+
 		return result;
 	}
-
-	protected abstract String getColumnName(String columnName);
 
 	@Override
 	public List<String> getTablesName() {
 
-		List<String> list = new ArrayList<String>();
+		final List<String> list = new ArrayList<String>();
 
-		Connection conn = this.getConnection();
-		if (conn != null) {
-			Statement stmt = null;
-			ResultSet res = null;
-			try {
-				stmt = conn.createStatement();
-				res = stmt.executeQuery(getQuerySql());
-				while (res.next()) {
-					//
-					list.add(getTableName(res));
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if (res != null)
-						res.close();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-
-				try {
-					if (stmt != null)
-						stmt.close();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+		Statement stmt = null;
+		ResultSet res = null;
+		try {
+			final Connection conn = this.getConnection();
+			stmt = conn.createStatement();
+			res = stmt.executeQuery(getTablesQuerySql());
+			while (res.next()) {
+				//
+				list.add(getTableName(res));
 			}
+		} catch (SQLException e) {
+			LOGGER.error(e);
+		} finally {
+			releaseDbQuery(stmt, res);
 		}
 		return list;
 	}
 
-	protected abstract String getColumnsSql(String tableName);
+	private void releaseDbQuery(Statement stmt, ResultSet res) {
+		try {
+			if (res != null)
+				res.close();
+		} catch (Exception ex) {
+			LOGGER.error(ex);
+		}
 
-	protected abstract String getQuerySql();
+		try {
+			if (stmt != null)
+				stmt.close();
+		} catch (Exception ex) {
+			LOGGER.error(ex);
+		}
+	}
 
+	/**
+	 * Filter the database keyword
+	 * 
+	 * @param columnName
+	 * @return
+	 */
+	protected abstract String getColumnName(String columnName);
+
+	/**
+	 * Get columns query sql
+	 * 
+	 * @param tableName
+	 * @return
+	 */
+	protected abstract String getColumnsQuerySql(String tableName);
+
+	/**
+	 * Get tables query sql
+	 * 
+	 * @return
+	 */
+	protected abstract String getTablesQuerySql();
+
+	/**
+	 * Get table name from resultSet and filter the database keyword
+	 * 
+	 * @param resultSet
+	 * @return
+	 * @throws SQLException
+	 */
 	protected abstract String getTableName(ResultSet resultSet)
 			throws SQLException;
 

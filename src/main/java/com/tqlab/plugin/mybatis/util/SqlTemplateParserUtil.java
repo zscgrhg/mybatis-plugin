@@ -352,14 +352,15 @@ public class SqlTemplateParserUtil {
 				|| "Boolean".equalsIgnoreCase(resultType);
 	}
 
-	private static void processProperty(TopLevelClass topLevelClass,
-			String cloumn, String javaProperty, String javaType) {
+	private static void processProperty(final TopLevelClass topLevelClass,
+			final String cloumn, final String javaProperty,
+			final String javaType) {
 
-		FullyQualifiedJavaType _javaType = new FullyQualifiedJavaType(javaType);
+		final FullyQualifiedJavaType type = new FullyQualifiedJavaType(javaType);
 
-		Field field = new Field();
+		final Field field = new Field();
 		field.setName(javaProperty);
-		field.setType(_javaType);
+		field.setType(type);
 		field.setVisibility(JavaVisibility.PRIVATE);
 		addFieldComment(field, cloumn);
 
@@ -371,7 +372,7 @@ public class SqlTemplateParserUtil {
 				0, 1).toUpperCase()
 				+ javaProperty.substring(1) : javaProperty.toUpperCase();
 		method.setName("set" + methodName);
-		method.addParameter(new Parameter(_javaType, javaProperty));
+		method.addParameter(new Parameter(type, javaProperty));
 		method.addBodyLine("this." + javaProperty + "=" + javaProperty + ";");
 		method.setReturnType(new FullyQualifiedJavaType("void"));
 		method.setVisibility(JavaVisibility.PUBLIC);
@@ -380,7 +381,7 @@ public class SqlTemplateParserUtil {
 
 		method = new Method();
 		method.setName("get" + methodName);
-		method.setReturnType(_javaType);
+		method.setReturnType(type);
 		method.addBodyLine("return " + javaProperty + ";");
 		method.setVisibility(JavaVisibility.PUBLIC);
 		addGeneralMethodComment(method, cloumn);

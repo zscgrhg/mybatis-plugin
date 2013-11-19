@@ -5,28 +5,30 @@ package com.tqlab.plugin.mybatis.generator.config;
 
 import java.util.regex.Pattern;
 
+import com.tqlab.plugin.mybatis.MybatisPluginException;
+
 /**
  * @author John Lee
  * 
  */
-public class CacheConfigItem {
+public final class CacheConfigItem {
 
 	private Pattern classRegexp;
 
 	private String cacheValue;
 
-	private CacheConfigItem(Pattern classRegexp, String cacheValue) {
+	private CacheConfigItem(final Pattern classRegexp, final String cacheValue) {
 		this.classRegexp = classRegexp;
 		this.cacheValue = cacheValue;
 	}
 
-	public static final CacheConfigItem valueOf(String key, String value) {
+	public static CacheConfigItem valueOf(final String key, final String value) {
 
 		if (key == null)
-			throw new IllegalArgumentException(
+			throw new MybatisPluginException(
 					"Property's key should be specified!");
 		if (value == null)
-			throw new IllegalArgumentException(
+			throw new MybatisPluginException(
 					"Property's value should be specified!");
 
 		return new CacheConfigItem(Pattern.compile(key), value);
@@ -37,7 +39,7 @@ public class CacheConfigItem {
 		return classRegexp;
 	}
 
-	public void setClassRegexp(Pattern classRegexp) {
+	public void setClassRegexp(final Pattern classRegexp) {
 		this.classRegexp = classRegexp;
 	}
 
@@ -45,7 +47,7 @@ public class CacheConfigItem {
 		return cacheValue;
 	}
 
-	public void setCacheValue(String cacheValue) {
+	public void setCacheValue(final String cacheValue) {
 		this.cacheValue = cacheValue;
 	}
 }

@@ -14,11 +14,11 @@ import java.util.Properties;
  */
 public class Config {
 
-	private Properties props;
-	private List<CacheConfigItem> items;
+	private final Properties props;
+	private final List<CacheConfigItem> items;
 
 	@SuppressWarnings("unchecked")
-	public Config(Properties props) {
+	public Config(final Properties props) {
 		this.props = props;
 		this.items = new ArrayList<CacheConfigItem>();
 
@@ -29,7 +29,7 @@ public class Config {
 		}
 	}
 
-	public String getCacheValue(String classFQN) {
+	public String getCacheValue(final String classFQN) {
 
 		for (CacheConfigItem item : items) {
 			if (item.getClassRegexp().matcher(classFQN).matches())

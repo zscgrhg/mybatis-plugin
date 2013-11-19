@@ -16,8 +16,8 @@
  */
 package com.tqlab.plugin.mybatis.database;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author John Lee
@@ -70,10 +70,13 @@ public enum DatabaseEnum {
 	 */
 	DEFAULT("JDBC");
 
-	private static final Map<String, DatabaseEnum> map = new HashMap<String, DatabaseEnum>();
+	/**
+	 * 
+	 */
+	private static final Map<String, DatabaseEnum> CACHE = new ConcurrentHashMap<String, DatabaseEnum>();
 	static {
 		for (DatabaseEnum databaseEnum : DatabaseEnum.values()) {
-			map.put(databaseEnum.sqlStatement.toLowerCase(), databaseEnum);
+			CACHE.put(databaseEnum.sqlStatement.toLowerCase(), databaseEnum);
 		}
 	}
 
@@ -107,6 +110,6 @@ public enum DatabaseEnum {
 		if (null == sqlStatement) {
 			return null;
 		}
-		return map.get(sqlStatement.toLowerCase());
+		return CACHE.get(sqlStatement.toLowerCase());
 	}
 }

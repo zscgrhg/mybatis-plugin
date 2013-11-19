@@ -16,6 +16,8 @@
  */
 package com.tqlab.plugin.mybatis.database;
 
+import com.tqlab.plugin.mybatis.MybatisPluginException;
+
 /**
  * @author John Lee
  * 
@@ -23,21 +25,29 @@ package com.tqlab.plugin.mybatis.database;
 public class DatabaseFactoryImpl implements DatabaseFactory {
 
 	@Override
-	public Database getDatabase(DatabaseEnum databaseEnum, String database,
-			String url, String user, String password) {
+	public Database getDatabase(final DatabaseEnum databaseEnum,
+			final String database, final String url, final String user,
+			final String password) {
 
+		Database result = null;
 		switch (databaseEnum) {
 		case MYSQL: {
-			return new MySQLDatabase(database, url, user, password);
+			result = new MySQLDatabase(database, url, user, password);
+			break;
 		}
 		case HSQLDB: {
-			return new HsqldbDatabase(database, url, user, password);
+			result = new HsqldbDatabase(database, url, user, password);
+			break;
 		}
 		default: {
 			//
+			break;
 		}
 		}
-		throw new RuntimeException("database " + databaseEnum.name()
+		if (null != result) {
+			return result;
+		}
+		throw new MybatisPluginException("database " + databaseEnum.name()
 				+ " not supported.");
 	}
 }

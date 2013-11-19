@@ -51,7 +51,8 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 	private static final String NEW_LINE = "\r\n";
 
-	private Logger LOGGER = Logger.getLogger(MybatisCreaterImpl.class);
+	private static final Logger LOGGER = Logger
+			.getLogger(MybatisCreaterImpl.class);
 	private Properties properties;
 
 	public MybatisCreaterImpl(Properties properties) {
@@ -317,14 +318,15 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		return s;
 	}
 
-	private String getTableName(String tableName) {
-		tableName = tableName.trim();
+	private String getTableName(final String tableName) {
+		String name = tableName.trim();
 
-		Pattern p = Pattern.compile("^[^a-zA-Z0-9](.)+[^a-zA-Z0-9]$");
-		Matcher matcher = p.matcher(tableName);
+		final Pattern pattern = Pattern
+				.compile("^[^a-zA-Z0-9](.)+[^a-zA-Z0-9]$");
+		final Matcher matcher = pattern.matcher(name);
 		if (matcher.find()) {
-			tableName = tableName.substring(1, tableName.length() - 1);
+			name = name.substring(1, name.length() - 1);
 		}
-		return tableName;
+		return name;
 	}
 }

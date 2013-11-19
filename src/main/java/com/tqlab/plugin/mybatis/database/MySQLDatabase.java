@@ -29,12 +29,13 @@ public class MySQLDatabase extends AbstractDatabase {
 
 	/**
 	 * 
+	 * @param database
 	 * @param url
 	 * @param user
 	 * @param password
 	 */
-	public MySQLDatabase(String database, String url, String user,
-			String password) {
+	public MySQLDatabase(final String database, final String url,
+			final String user, final String password) {
 		super(DRIVER, database, url, user, password);
 	}
 
@@ -44,7 +45,7 @@ public class MySQLDatabase extends AbstractDatabase {
 	}
 
 	@Override
-	protected String getQuerySql() {
+	protected String getTablesQuerySql() {
 		return "show tables;";
 	}
 
@@ -62,7 +63,7 @@ public class MySQLDatabase extends AbstractDatabase {
 	}
 
 	@Override
-	protected String getColumnsSql(String tableName) {
+	protected String getColumnsQuerySql(String tableName) {
 		if (null == tableName) {
 			return null;
 		}

@@ -41,6 +41,7 @@ import org.mybatis.generator.api.dom.java.Parameter;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.mybatis.generator.config.Context;
 
+import com.tqlab.plugin.mybatis.MybatisPluginException;
 import com.tqlab.plugin.mybatis.generator.config.Config;
 import com.tqlab.plugin.mybatis.util.SqlTemplateParserUtil;
 
@@ -114,8 +115,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				.calculateAllFieldsClass();
 		interfaze.addImportedType(parameterType);
 
-		AnnotatedJavaMapperMethodGenerator generator = new AnnotatedJavaMapperMethodGenerator(
-				false);
+		AnnotatedGenerator generator = new AnnotatedGenerator(false);
 		generator.setContext(context);
 		generator.setIntrospectedTable(introspectedTable);
 
@@ -218,7 +218,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				|| sql.startsWith("insert")) {
 			return FullyQualifiedJavaType.getIntInstance();
 		} else if (!sql.startsWith("select")) {
-			throw new RuntimeException(sql + " not supported.");
+			throw new MybatisPluginException(sql + " not supported.");
 		}
 
 		DbSelectResult result = operation.getResult();
