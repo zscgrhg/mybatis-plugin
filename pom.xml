@@ -169,6 +169,10 @@
 				<groupId>com.atlassian.maven.plugins</groupId>
 				<artifactId>maven-clover2-plugin</artifactId>
 				<version>${clover.version}</version>
+				<configuration>
+					<generateHtml>true</generateHtml>
+					<generateXml>true</generateXml>
+				</configuration>
 				<executions>
 					<execution>
 						<phase>generate-sources</phase>
