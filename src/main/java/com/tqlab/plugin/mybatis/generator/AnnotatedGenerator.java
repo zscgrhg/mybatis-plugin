@@ -30,6 +30,8 @@ import org.mybatis.generator.api.dom.java.FullyQualifiedJavaType;
 import org.mybatis.generator.api.dom.java.Interface;
 import org.mybatis.generator.api.dom.java.Method;
 import org.mybatis.generator.codegen.mybatis3.javamapper.elements.AbstractJavaMapperMethodGenerator;
+import org.mybatis.generator.logging.Log;
+import org.mybatis.generator.logging.LogFactory;
 
 import com.tqlab.plugin.mybatis.MybatisPluginException;
 
@@ -38,6 +40,8 @@ import com.tqlab.plugin.mybatis.MybatisPluginException;
  * 
  */
 public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
+
+	private Log LOGGER = LogFactory.getLog(getClass());
 
 	private boolean useResultMapIfAvailable;
 
@@ -202,26 +206,37 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 		}
 
 		String tableName = "";
-		temp = sql.substring(index + 4).trim();
-		index = temp.indexOf(" ");
 		boolean hasMore = false;
-		if (index > 0) {
-			tableName = temp.substring(0, index).trim();
-			hasMore = true;
+		temp = sql.substring(index + 4).trim();
+		if (temp.startsWith("(")) {
+			tableName = getTableNameFromComplexSql(temp);
+			String s = temp.substring(0, tableName.length());
+			index = s.indexOf(" ");
+			if (index > 0) {
+				hasMore = true;
+			}
 		} else {
-			tableName = temp.trim();
-			hasMore = false;
+			index = temp.indexOf(" ");
+
+			if (index > 0) {
+				tableName = temp.substring(0, index).trim();
+				hasMore = true;
+			} else {
+				tableName = temp.trim();
+				hasMore = false;
+			}
 		}
 
+		LOGGER.warn("tableName: " + tableName);
 		if (tableName.contains(";")) {
 			tableName = tableName.substring(0, tableName.indexOf(";"));
 		}
 
-		if (!tableName.equalsIgnoreCase(introspectedTable
-				.getAliasedFullyQualifiedTableNameAtRuntime())) {
-			throw new MybatisPluginException("table name " + tableName
-					+ " error.");
-		}
+		// if (!tableName.equalsIgnoreCase(introspectedTable
+		// .getAliasedFullyQualifiedTableNameAtRuntime())) {
+		// throw new MybatisPluginException("table name " + tableName
+		// + " error.");
+		// }
 
 		index = temp.indexOf("from");
 
@@ -229,8 +244,7 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 		sb.setLength(0);
 		javaIndent(sb, 1);
 		sb.append("\"from "); //$NON-NLS-1$
-		sb.append(escapeStringForJava(introspectedTable
-				.getAliasedFullyQualifiedTableNameAtRuntime()));
+		sb.append(tableName);
 		if (hasMore) {
 			sb.append("\","); //$NON-NLS-1$
 		} else {
@@ -277,6 +291,23 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 		} else {
 			addAnnotatedResults(selectedCloumns, interfaze, method);
 		}
+	}
+
+	public String getTableNameFromComplexSql(final String sql) {
+		String s = sql.trim();
+		int indexEnd = s.indexOf(")");
+		s = s.substring(0, indexEnd + 1);
+		String arrays[] = s.split("\\(");
+		int size = arrays.length;
+		for (int i = 0; i < sql.length(); i++) {
+			if (sql.charAt(i) == ')') {
+				size--;
+			}
+			if (size == 1) {
+				return sql.substring(0, i + 1);
+			}
+		}
+		throw new MybatisPluginException("sql error.");
 	}
 
 	private void addResultMapAnnotation(Interface interfaze, Method method) {
