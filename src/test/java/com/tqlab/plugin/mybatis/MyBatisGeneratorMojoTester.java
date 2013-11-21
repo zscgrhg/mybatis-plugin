@@ -1,4 +1,4 @@
-package org.mybatis.generator.maven;
+package com.tqlab.plugin.mybatis;
 
 import java.io.File;
 import java.lang.reflect.Field;

@@ -76,8 +76,13 @@ public class SqlTemplateParserUtil {
 	private static final String MYBATIS_XSD_REMOTE = "http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd";
 	private static final String FEATURE = "http://apache.org/xml/features/validation/schema";
 
+	private static SAXReader reader;
+
 	private static SAXReader getSAXReader() throws SAXException,
 			ParserConfigurationException {
+		if (null != reader) {
+			return reader;
+		}
 		// Check remote xsd file exit or not
 		InputStream is = null;
 		try {
@@ -87,7 +92,6 @@ public class SqlTemplateParserUtil {
 			is = null;
 			LOGGER.warn("Read file: " + MYBATIS_XSD_REMOTE + " error.");
 		}
-		SAXReader reader = null;
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		if (null == is) {
 			SchemaFactory schemaFactory = SchemaFactory
@@ -107,7 +111,7 @@ public class SqlTemplateParserUtil {
 			// request XML Schema validation
 			reader.setFeature(FEATURE, true);
 		}
-
+		reader.setErrorHandler(new SimpleErrorHandler());
 		return reader;
 	}
 
@@ -118,7 +122,6 @@ public class SqlTemplateParserUtil {
 		Document document = null;
 		try {
 			SAXReader reader = getSAXReader();
-			reader.setErrorHandler(new SimpleErrorHandler());
 			//
 			document = reader.read(file);
 		} catch (Exception e) {
@@ -217,6 +220,12 @@ public class SqlTemplateParserUtil {
 					operation.setResult(dbSelectResult);
 					break;
 				}
+			}
+			//
+			if (operation.getResult() == null) {
+				DbSelectResult dbSelectResult = new DbSelectResult();
+				dbSelectResult.setType(fullyQualifiedJavaType);
+				operation.setResult(dbSelectResult);
 			}
 		}
 
@@ -328,15 +337,19 @@ public class SqlTemplateParserUtil {
 
 	private static FullyQualifiedJavaType getFullyQualifiedJavaType(
 			Context context, String resultType) {
-		String basicPackage = context.getJavaModelGeneratorConfiguration()
-				.getTargetPackage();
-		String type = resultType;
-		if (null != basicPackage && !"".equals(basicPackage)
-				&& !resultType.startsWith(basicPackage)
-				&& resultType.indexOf('.') == -1) {
-			type = basicPackage + "." + resultType;
+		if (!isBasicType(resultType)) {
+			String basicPackage = context.getJavaModelGeneratorConfiguration()
+					.getTargetPackage();
+			String type = resultType;
+			if (null != basicPackage && !"".equals(basicPackage)
+					&& !resultType.startsWith(basicPackage)
+					&& resultType.indexOf('.') == -1) {
+				type = basicPackage + "." + resultType;
+			}
+			return new FullyQualifiedJavaType(type);
+		} else {
+			return new FullyQualifiedJavaType(resultType);
 		}
-		return new FullyQualifiedJavaType(type);
 	}
 
 	private static boolean isBasicType(String resultType) {

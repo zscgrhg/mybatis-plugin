@@ -27,6 +27,20 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.AllColumns;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectBody;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.update.Update;
+
 import org.mybatis.generator.api.GeneratedJavaFile;
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
@@ -43,7 +57,9 @@ import org.mybatis.generator.config.Context;
 
 import com.tqlab.plugin.mybatis.MybatisPluginException;
 import com.tqlab.plugin.mybatis.generator.config.Config;
+import com.tqlab.plugin.mybatis.util.ScriptUtil;
 import com.tqlab.plugin.mybatis.util.SqlTemplateParserUtil;
+import com.tqlab.plugin.mybatis.util.SqlUtil;
 
 /**
  * @author John Lee
@@ -54,7 +70,6 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 	private static final String CACHE_NAMESPACE_FQN = "org.apache.ibatis.annotations.CacheNamespace";
 	private static final String SQL_TEMPLATE_PATH = "sql.template.path";
 	private static final String WITH_XML = ".xml";
-	private static final String XML_PATTERN = "\\<.*?/>|\\<.*?>.*\\<\\/.*>";
 
 	private Map<String, DbTable> map = new HashMap<String, DbTable>();
 	private Map<String, GeneratedJavaFile> maps = new HashMap<String, GeneratedJavaFile>();
@@ -104,47 +119,50 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		// Check use cache or not
 		this.checkCache(interfaze);
 
-		String tableName = introspectedTable
+		final String tableName = introspectedTable
 				.getAliasedFullyQualifiedTableNameAtRuntime();
-		DbTable dbTable = this.map.get(tableName.toLowerCase());
+		final DbTable dbTable = this.map.get(tableName.toLowerCase());
 		if (null == dbTable) {
 			return false;
 		}
 
-		FullyQualifiedJavaType parameterType = introspectedTable.getRules()
-				.calculateAllFieldsClass();
+		final FullyQualifiedJavaType parameterType = introspectedTable
+				.getRules().calculateAllFieldsClass();
 		interfaze.addImportedType(parameterType);
 
-		AnnotatedGenerator generator = new AnnotatedGenerator(false);
+		final AnnotatedGenerator generator = new AnnotatedGenerator();
 		generator.setContext(context);
 		generator.setIntrospectedTable(introspectedTable);
 
 		for (DbTableOperation operation : dbTable.getOperations()) {
-			Method method = new Method();
-			method.setReturnType(getReturnFullyQualifiedJavaType(operation,
-					interfaze, introspectedTable, parameterType));
-			method.setVisibility(JavaVisibility.PUBLIC);
-			method.setName(operation.getId());
-			String[] comments = operation.getComment() == null ? null
-					: operation.getComment().split("\n");
-			addGeneralMethodComment(method, introspectedTable, comments);
-			Set<FullyQualifiedJavaType> importedTypes = new TreeSet<FullyQualifiedJavaType>();
 
-			String sql = operation.getSql();
-			boolean hasScript = sql.contains("<script>");
-			if (hasScript) {
-				sql = sql.replace("<script>", "");
-				sql = sql.replace("</script>", "");
+			final String sql = SqlUtil.trimSql(operation.getSql());
+			final boolean hasScript = ScriptUtil.hasScript(sql);
+
+			Statement statement = null;
+			try {
+				statement = CCJSqlParserUtil.parse(SqlUtil.filterSql(sql));
+			} catch (Throwable e) {
+				throw new MybatisPluginException("Sql parser error. SQL ["
+						+ sql + "]", e);
 			}
 
-			sql = sql.replace("\r", " ");
-			sql = sql.replace("\n", " ");
-			sql = sql.replace("\t", " ");
-			sql = sql.replace("\"", "\\\"");
-			sql = sql.replace("  ", " ");
-			sql = sql.trim();
-			List<Parameter> list = this.parseSqlParameter(sql,
-					operation.getParams(), interfaze, introspectedTable);
+			final Method method = new Method();
+			method.setReturnType(getReturnFullyQualifiedJavaType(operation,
+					interfaze, introspectedTable, parameterType, statement));
+			method.setVisibility(JavaVisibility.PUBLIC);
+			method.setName(operation.getId());
+			final String[] comments = operation.getComment() == null ? null
+					: operation.getComment().split("\n");
+			addGeneralMethodComment(method, introspectedTable, comments);
+			final Set<FullyQualifiedJavaType> importedTypes = new TreeSet<FullyQualifiedJavaType>();
+
+			final List<Parameter> list = this.parseSqlParameter(sql,
+					operation.getParams(), introspectedTable);
+			if (list.size() > 0) {
+				interfaze.addImportedType(new FullyQualifiedJavaType(
+						"org.apache.ibatis.annotations.Param")); //$NON-NLS-1$
+			}
 
 			for (Parameter p : list) {
 				method.addParameter(p); //$NON-NLS-1$
@@ -152,8 +170,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			}
 
 			generator.addMapperAnnotations(interfaze, method,
-					null == operation.getResultType(), operation.getResult(),
-					hasScript, sql);
+					operation.getResult(), statement, hasScript, sql);
 			interfaze.addMethod(method);
 			interfaze.addImportedTypes(importedTypes);
 
@@ -171,7 +188,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			return;
 		}
 
-		String cacheValue = config.getCacheValue(interfaze.getType()
+		final String cacheValue = config.getCacheValue(interfaze.getType()
 				.getFullyQualifiedName());
 		if (cacheValue != null) {
 			interfaze.addImportedType(new FullyQualifiedJavaType(
@@ -185,9 +202,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 	@Override
 	public List<GeneratedJavaFile> contextGenerateAdditionalJavaFiles() {
-
-		List<GeneratedJavaFile> list = new ArrayList<GeneratedJavaFile>();
-		Set<Map.Entry<String, GeneratedJavaFile>> set = maps.entrySet();
+		final List<GeneratedJavaFile> list = new ArrayList<GeneratedJavaFile>();
+		final Set<Map.Entry<String, GeneratedJavaFile>> set = maps.entrySet();
 		for (Iterator<Map.Entry<String, GeneratedJavaFile>> i = set.iterator(); i
 				.hasNext();) {
 			Map.Entry<String, GeneratedJavaFile> e = i.next();
@@ -199,26 +215,18 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 	private FullyQualifiedJavaType getReturnFullyQualifiedJavaType(
 			DbTableOperation operation, Interface interfaze,
 			IntrospectedTable introspectedTable,
-			FullyQualifiedJavaType parameterType) {
+			FullyQualifiedJavaType parameterType, Statement statement) {
 		//
 		if (null != operation.getResultType()) {
 			return this.getSelect(operation, interfaze,
 					operation.getResultType());
 		}
-		String sql = operation.getSql().toLowerCase().trim();
-		boolean hasScript = sql.contains("<script>");
-		if (hasScript) {
-			sql = sql.replace("<script>", "");
-			sql = sql.replace("</script>", "");
-		}
 
-		sql = sql.replaceAll(XML_PATTERN, "").trim();
-
-		if (sql.startsWith("delete") || sql.startsWith("update")
-				|| sql.startsWith("insert")) {
+		if (statement instanceof Insert || statement instanceof Update
+				|| statement instanceof Delete) {
 			return FullyQualifiedJavaType.getIntInstance();
-		} else if (!sql.startsWith("select")) {
-			throw new MybatisPluginException(sql + " not supported.");
+		} else if (!(statement instanceof Select)) {
+			throw new MybatisPluginException(statement + " not supported.");
 		}
 
 		DbSelectResult result = operation.getResult();
@@ -228,8 +236,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 					.getShortName());
 		}
 		//
-		sql = sql.substring(6, sql.indexOf("from")).trim();
-		boolean hasSelectedBLOB = this.hasSelectedBLOB(introspectedTable, sql);
+		boolean hasSelectedBLOB = this.hasSelectedBLOB(introspectedTable,
+				(Select) statement);
 		String name = parameterType.getShortName();
 		if (!hasSelectedBLOB && introspectedTable.hasBLOBColumns()) {
 			name = name.substring(0, name.length() - 9); // delete BLOBs
@@ -238,27 +246,41 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 	}
 
 	private boolean hasSelectedBLOB(final IntrospectedTable introspectedTable,
-			final String sql) {
-
+			final Select select) {
+		boolean hasSelectedBLOB = false;
 		if (!introspectedTable.hasBLOBColumns()) {
-			return false;
+			return hasSelectedBLOB;
 		}
 		//
-		boolean hasSelectedBLOB = false;
-		// select all
-		if (sql.equals("*")) {
-			hasSelectedBLOB = true;
-		} else {
-			String[] cloumnsArray = sql.split(",");
+
+		SelectBody selectBody = select.getSelectBody();
+		if (selectBody instanceof PlainSelect) {
+			PlainSelect plainSelect = (PlainSelect) selectBody;
+			List<SelectItem> list = plainSelect.getSelectItems();
 			Set<String> cloumns = new HashSet<String>();
-			for (String s : cloumnsArray) {
-				cloumns.add(s.trim());
-			}
-			List<IntrospectedColumn> list = introspectedTable.getBLOBColumns();
-			for (IntrospectedColumn c : list) {
-				if (cloumns.contains(c.getActualColumnName().toLowerCase())) {
+			for (SelectItem item : list) {
+				if (item instanceof AllColumns) {
 					hasSelectedBLOB = true;
 					break;
+				} else if (item instanceof SelectExpressionItem) {
+					SelectExpressionItem eItem = (SelectExpressionItem) item;
+					Expression expression = eItem.getExpression();
+					if (expression instanceof Column) {
+						Column c = (Column) expression;
+						cloumns.add(c.getColumnName().toLowerCase());
+					}
+
+				}
+			}
+
+			if (!hasSelectedBLOB) {
+				List<IntrospectedColumn> columnList = introspectedTable
+						.getBLOBColumns();
+				for (IntrospectedColumn c : columnList) {
+					if (cloumns.contains(c.getActualColumnName().toLowerCase())) {
+						hasSelectedBLOB = true;
+						break;
+					}
 				}
 			}
 		}
@@ -280,17 +302,15 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 	}
 
 	private List<Parameter> parseSqlParameter(final String sql,
-			List<DbParam> params, Interface interfaze,
-			IntrospectedTable introspectedTable) {
+			List<DbParam> params, IntrospectedTable introspectedTable) {
 		List<Parameter> result = new ArrayList<Parameter>();
 		for (DbParam param : params) {
 			result.add(getParameter(param.getType(), param.getObjectName()));
 		}
 
 		//
-		String sqlTemp = new String(sql);
 		List<String> list = new ArrayList<String>();
-		parseSqlParameter(list, sqlTemp);
+		parseSqlParameter(list, sql);
 		for (String param : list) {
 			String s[] = param.split(",");
 			FullyQualifiedJavaType type = null;
@@ -305,11 +325,6 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			}
 			result.add(getParameter(type, s[0]));
 		}
-
-		if (result.size() > 0) {
-			interfaze.addImportedType(new FullyQualifiedJavaType(
-					"org.apache.ibatis.annotations.Param")); //$NON-NLS-1$
-		}
 		return result;
 	}
 
@@ -317,10 +332,13 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		return new Parameter(type, name, "@Param(\"" + name + "\")");
 	}
 
-	private List<String> parseSqlParameter(List<String> list, String sql) {
-		if (null == list) {
-			list = new ArrayList<String>();
-		}
+	/**
+	 * 
+	 * @param list
+	 * @param sql
+	 * @return
+	 */
+	private List<String> parseSqlParameter(final List<String> list, String sql) {
 		try {
 			int index = sql.indexOf('#');
 			if (index >= 0) {
