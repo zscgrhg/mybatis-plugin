@@ -115,7 +115,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				.calculateAllFieldsClass();
 		interfaze.addImportedType(parameterType);
 
-		AnnotatedGenerator generator = new AnnotatedGenerator(false);
+		AnnotatedGenerator generator = new AnnotatedGenerator();
 		generator.setContext(context);
 		generator.setIntrospectedTable(introspectedTable);
 
@@ -152,8 +152,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			}
 
 			generator.addMapperAnnotations(interfaze, method,
-					null == operation.getResultType(), operation.getResult(),
-					hasScript, sql);
+					operation.getResult(), hasScript, sql);
 			interfaze.addMethod(method);
 			interfaze.addImportedTypes(importedTypes);
 

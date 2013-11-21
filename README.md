@@ -187,4 +187,5 @@ properties|extra config||false
 1. Add mybatis sql template xml Scheam support.
 2. Add log4j support when generate Java Mapper.
 3. Add tableNames validate.
-4. Delete unused code.
+4. Add jsqlpaser for SQL validation 
+5. Delete unused code.

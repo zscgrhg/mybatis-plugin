@@ -218,6 +218,12 @@ public class SqlTemplateParserUtil {
 					break;
 				}
 			}
+			//
+			if (operation.getResult() == null) {
+				DbSelectResult dbSelectResult = new DbSelectResult();
+				dbSelectResult.setType(fullyQualifiedJavaType);
+				operation.setResult(dbSelectResult);
+			}
 		}
 
 		if (null != params && null != params.elements(PARAM)) {
@@ -328,15 +334,19 @@ public class SqlTemplateParserUtil {
 
 	private static FullyQualifiedJavaType getFullyQualifiedJavaType(
 			Context context, String resultType) {
-		String basicPackage = context.getJavaModelGeneratorConfiguration()
-				.getTargetPackage();
-		String type = resultType;
-		if (null != basicPackage && !"".equals(basicPackage)
-				&& !resultType.startsWith(basicPackage)
-				&& resultType.indexOf('.') == -1) {
-			type = basicPackage + "." + resultType;
+		if (!isBasicType(resultType)) {
+			String basicPackage = context.getJavaModelGeneratorConfiguration()
+					.getTargetPackage();
+			String type = resultType;
+			if (null != basicPackage && !"".equals(basicPackage)
+					&& !resultType.startsWith(basicPackage)
+					&& resultType.indexOf('.') == -1) {
+				type = basicPackage + "." + resultType;
+			}
+			return new FullyQualifiedJavaType(type);
+		} else {
+			return new FullyQualifiedJavaType(resultType);
 		}
-		return new FullyQualifiedJavaType(type);
 	}
 
 	private static boolean isBasicType(String resultType) {

@@ -17,23 +17,27 @@
 package com.tqlab.plugin.mybatis.generator;
 
 import static org.mybatis.generator.api.dom.OutputUtilities.javaIndent;
-import static org.mybatis.generator.codegen.mybatis3.MyBatis3FormattingUtilities.getSelectListPhrase;
-import static org.mybatis.generator.internal.util.StringUtility.escapeStringForJava;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.update.Update;
 
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.dom.java.FullyQualifiedJavaType;
 import org.mybatis.generator.api.dom.java.Interface;
 import org.mybatis.generator.api.dom.java.Method;
 import org.mybatis.generator.codegen.mybatis3.javamapper.elements.AbstractJavaMapperMethodGenerator;
-import org.mybatis.generator.logging.Log;
-import org.mybatis.generator.logging.LogFactory;
 
 import com.tqlab.plugin.mybatis.MybatisPluginException;
+import com.tqlab.plugin.mybatis.util.CommonAnnotationUtil;
+import com.tqlab.plugin.mybatis.util.ResultAnnotationUtil;
+import com.tqlab.plugin.mybatis.util.SelectAnnotationUtil;
 
 /**
  * @author John Lee
@@ -41,14 +45,8 @@ import com.tqlab.plugin.mybatis.MybatisPluginException;
  */
 public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 
-	private Log LOGGER = LogFactory.getLog(getClass());
-
-	private boolean useResultMapIfAvailable;
-
-	public AnnotatedGenerator(boolean useResultMapIfAvailable) {
+	public AnnotatedGenerator() {
 		super();
-
-		this.useResultMapIfAvailable = useResultMapIfAvailable;
 	}
 
 	@Override
@@ -56,275 +54,63 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 
 	}
 
-	public void addMapperAnnotations(Interface interfaze, Method method,
-			boolean needSetResult, DbSelectResult result, boolean hasScript,
-			final String sql) {
+	public void addMapperAnnotations(final Interface interfaze,
+			final Method method, final DbSelectResult result,
+			final boolean hasScript, final String sql) {
+		String filterSql = SelectAnnotationUtil.filterSql(sql);
+		try {
+			final Statement statement = CCJSqlParserUtil.parse(filterSql);
+			if (statement instanceof Delete) {
+				CommonAnnotationUtil.addAnnotation(interfaze, method,
+						hasScript, sql,
+						org.apache.ibatis.annotations.Delete.class);
+			} else if (statement instanceof Update) {
+				CommonAnnotationUtil.addAnnotation(interfaze, method,
+						hasScript, sql,
+						org.apache.ibatis.annotations.Update.class);
+			} else if (statement instanceof Insert) {
+				CommonAnnotationUtil.addAnnotation(interfaze, method,
+						hasScript, sql,
+						org.apache.ibatis.annotations.Insert.class);
+			} else if (statement instanceof Select) {
+				final GeneratorCallback generator = new GeneratorCallback() {
 
+					@Override
+					public void addAnnotatedResults(final Interface interfaze,
+							final Method method) {
+						AnnotatedGenerator.this.addAnnotatedResults(interfaze,
+								method, result, (Select) statement);
+					}
+
+				};
+				SelectAnnotationUtil.addSelectAnnotation(introspectedTable,
+						interfaze, method, hasScript, sql, generator);
+			}
+		} catch (Throwable e) {
+			throw new MybatisPluginException("Sql parser error. Origin SQL ["
+					+ sql + "] Filter SQL = [" + filterSql + "]", e);
+		}
+
+	}
+
+	private void addAnnotatedResults(final Interface interfaze,
+			final Method method, final DbSelectResult result,
+			final Select select) {
 		if (null != result) {
-			this.prosessByResultConfig(interfaze, method, result, hasScript,
-					sql);
-			return;
-		}
-
-		String temp = sql.toLowerCase();
-		if (temp.startsWith("delete")) {
-			interfaze.addImportedType(new FullyQualifiedJavaType(
-					"org.apache.ibatis.annotations.Delete")); //$NON-NLS-1$
-			StringBuilder sb = new StringBuilder();
-			method.addAnnotation("@Delete({"); //$NON-NLS-1$
-			this.addScriptStart(hasScript, method);
-			javaIndent(sb, 1);
-			sb.append("\"");
-			sb.append(sql.replace("\n", " "));
-			sb.append("\"");
-			javaIndent(sb, 1);
-			method.addAnnotation(sb.toString());
-
-			this.addScriptEnd(hasScript, method);
-			method.addAnnotation("})"); //$NON-NLS-1$
-			return;
-		} else if (temp.startsWith("update")) {
-			interfaze.addImportedType(new FullyQualifiedJavaType(
-					"org.apache.ibatis.annotations.Update")); //$NON-NLS-1$
-			StringBuilder sb = new StringBuilder();
-			method.addAnnotation("@Update({"); //$NON-NLS-1$
-			this.addScriptStart(hasScript, method);
-			javaIndent(sb, 1);
-			sb.append("\"");
-			sb.append(sql.replace("\n", " "));
-			sb.append("\"");
-			javaIndent(sb, 1);
-			method.addAnnotation(sb.toString());
-			method.addAnnotation("})"); //$NON-NLS-1$
-			return;
-		} else if (temp.startsWith("insert")) {
-			interfaze.addImportedType(new FullyQualifiedJavaType(
-					"org.apache.ibatis.annotations.Insert")); //$NON-NLS-1$
-			StringBuilder sb = new StringBuilder();
-			method.addAnnotation("@Insert({"); //$NON-NLS-1$
-			this.addScriptStart(hasScript, method);
-			javaIndent(sb, 1);
-			sb.append("\"");
-			sb.append(sql.replace("\n", " "));
-			sb.append("\"");
-			javaIndent(sb, 1);
-			method.addAnnotation(sb.toString());
-
-			this.addScriptEnd(hasScript, method);
-			method.addAnnotation("})"); //$NON-NLS-1$
-			return;
-		} else if (temp.startsWith("select") && !needSetResult) {
-			interfaze.addImportedType(new FullyQualifiedJavaType(
-					"org.apache.ibatis.annotations.Select")); //$NON-NLS-1$
-			StringBuilder sb = new StringBuilder();
-			method.addAnnotation("@Select({"); //$NON-NLS-1$
-			this.addScriptStart(hasScript, method);
-
-			String sqls[] = sql.split("\n");
-			for (int i = 0; i < sqls.length; i++) {
-				sb.setLength(0);
-				javaIndent(sb, 1);
-				sb.append("\"");
-				sb.append(sqls[i].trim());
-				sb.append("\"");
-				if (i < sqls.length - 1) {
-					sb.append(",");
-				}
-				javaIndent(sb, 1);
-				method.addAnnotation(sb.toString());
-			}
-
-			this.addScriptEnd(hasScript, method);
-			method.addAnnotation("})"); //$NON-NLS-1$
-			return;
-		}
-
-		int index = temp.indexOf("from");
-		String selectedStr = sql.substring(6, index).trim();
-
-		interfaze.addImportedType(new FullyQualifiedJavaType(
-				"org.apache.ibatis.annotations.Select")); //$NON-NLS-1$
-
-		StringBuilder sb = new StringBuilder();
-		method.addAnnotation("@Select({"); //$NON-NLS-1$
-		this.addScriptStart(hasScript, method);
-		javaIndent(sb, 1);
-		sb.append("\"select\","); //$NON-NLS-1$
-		method.addAnnotation(sb.toString());
-
-		if (selectedStr.contains("*") && !"*".equals(selectedStr)) {
-			sb.setLength(0);
-			javaIndent(sb, 1);
-			sb.append('"');
-			sb.append(selectedStr.substring(0, selectedStr.indexOf('*')).trim());
-			sb.append('"');
-			sb.append(',');
-			method.addAnnotation(sb.toString());
-
-			selectedStr = selectedStr.substring(selectedStr.indexOf('*'))
-					.trim();
-		}
-
-		//
-		if ("*".equals(selectedStr)) {
-			Iterator<IntrospectedColumn> iter = introspectedTable
-					.getAllColumns().iterator();
-			sb.setLength(0);
-			javaIndent(sb, 1);
-			sb.append('"');
-			boolean hasColumns = false;
-			while (iter.hasNext()) {
-				sb.append(escapeStringForJava(getSelectListPhrase(iter.next())));
-				hasColumns = true;
-
-				if (iter.hasNext()) {
-					sb.append(", "); //$NON-NLS-1$
-				}
-
-				if (sb.length() > 80) {
-					sb.append("\","); //$NON-NLS-1$
-					method.addAnnotation(sb.toString());
-
-					sb.setLength(0);
-					javaIndent(sb, 1);
-					sb.append('"');
-					hasColumns = false;
-				}
-			}
-
-			if (hasColumns) {
-				sb.append("\","); //$NON-NLS-1$
-				method.addAnnotation(sb.toString());
-			}
+			this.addAnnotatedResults(interfaze, method, result);
 		} else {
-			sb.setLength(0);
-			javaIndent(sb, 1);
-			sb.append('"');
-			sb.append(selectedStr);
-			sb.append("\","); //$NON-NLS-1$
-			method.addAnnotation(sb.toString());
-		}
-
-		String tableName = "";
-		boolean hasMore = false;
-		temp = sql.substring(index + 4).trim();
-		if (temp.startsWith("(")) {
-			tableName = getTableNameFromComplexSql(temp);
-			String s = temp.substring(0, tableName.length());
-			index = s.indexOf(" ");
-			if (index > 0) {
-				hasMore = true;
-			}
-		} else {
-			index = temp.indexOf(" ");
-
-			if (index > 0) {
-				tableName = temp.substring(0, index).trim();
-				hasMore = true;
-			} else {
-				tableName = temp.trim();
-				hasMore = false;
-			}
-		}
-
-		LOGGER.warn("tableName: " + tableName);
-		if (tableName.contains(";")) {
-			tableName = tableName.substring(0, tableName.indexOf(";"));
-		}
-
-		// if (!tableName.equalsIgnoreCase(introspectedTable
-		// .getAliasedFullyQualifiedTableNameAtRuntime())) {
-		// throw new MybatisPluginException("table name " + tableName
-		// + " error.");
-		// }
-
-		index = temp.indexOf("from");
-
-		// ///////////
-		sb.setLength(0);
-		javaIndent(sb, 1);
-		sb.append("\"from "); //$NON-NLS-1$
-		sb.append(tableName);
-		if (hasMore) {
-			sb.append("\","); //$NON-NLS-1$
-		} else {
-			sb.append("\"");
-		}
-		method.addAnnotation(sb.toString());
-
-		// /////////////////////////////////////////////////////////////
-		if (hasMore) {
-			sb.setLength(0);
-			javaIndent(sb, 1);
-			sb.append("\"");
-			temp = sql.toLowerCase();
-			index = temp.indexOf("from");
-			temp = sql.substring(index + 4).trim();
-			temp = temp.substring(tableName.length()).trim();
-			sb.append(temp);
-			sb.append("\"");
-			method.addAnnotation(sb.toString());
-		}
-
-		this.addScriptEnd(hasScript, method);
-
-		method.addAnnotation("})"); //$NON-NLS-1$
-
-		temp = sql.toLowerCase().trim();
-		temp = temp.substring(6, temp.indexOf("from")).trim();
-		Set<String> selectedCloumns = new HashSet<String>();
-		if (!temp.equals("*")) {
-			String[] cloumnsArray = temp.toLowerCase().split(",");
-			for (String s : cloumnsArray) {
-				selectedCloumns.add(s.trim());
-			}
-		}
-
-		if (useResultMapIfAvailable) {
-			if (introspectedTable.getRules().generateBaseResultMap()
-					|| introspectedTable.getRules()
-							.generateResultMapWithBLOBs()) {
-				addResultMapAnnotation(interfaze, method);
-			} else {
-				addAnnotatedResults(selectedCloumns, interfaze, method);
-			}
-		} else {
-			addAnnotatedResults(selectedCloumns, interfaze, method);
+			this.addAnnotatedResults(interfaze, method, select);
 		}
 	}
 
-	public String getTableNameFromComplexSql(final String sql) {
-		String s = sql.trim();
-		int indexEnd = s.indexOf(")");
-		s = s.substring(0, indexEnd + 1);
-		String arrays[] = s.split("\\(");
-		int size = arrays.length;
-		for (int i = 0; i < sql.length(); i++) {
-			if (sql.charAt(i) == ')') {
-				size--;
-			}
-			if (size == 1) {
-				return sql.substring(0, i + 1);
-			}
-		}
-		throw new MybatisPluginException("sql error.");
-	}
-
-	private void addResultMapAnnotation(Interface interfaze, Method method) {
-		interfaze.addImportedType(new FullyQualifiedJavaType(
-				"org.apache.ibatis.annotations.ResultMap")); //$NON-NLS-1$
-
-		String annotation = String
-				.format("@ResultMap(\"%s\")",
-						introspectedTable.getRules()
-								.generateResultMapWithBLOBs() ? introspectedTable
-								.getResultMapWithBLOBsId() : introspectedTable
-								.getBaseResultMapId());
-		method.addAnnotation(annotation);
-	}
-
-	private void addAnnotatedResults(Set<String> selectedCloumns,
-			Interface interfaze, Method method) {
+	/**
+	 * 
+	 * @param interfaze
+	 * @param method
+	 * @param select
+	 */
+	private void addAnnotatedResults(final Interface interfaze,
+			final Method method, final Select select) {
 		interfaze.addImportedType(new FullyQualifiedJavaType(
 				"org.apache.ibatis.type.JdbcType")); //$NON-NLS-1$
 
@@ -351,12 +137,6 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 		while (iterPk.hasNext()) {
 			IntrospectedColumn introspectedColumn = iterPk.next();
 			sb.setLength(0);
-			//
-			if (!selectedCloumns.isEmpty()
-					&& !selectedCloumns.contains(introspectedColumn
-							.getActualColumnName().toLowerCase())) {
-				continue;
-			}
 
 			javaIndent(sb, 1);
 			sb.append(getResultAnnotation(interfaze, introspectedColumn, true,
@@ -373,12 +153,7 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 
 			IntrospectedColumn introspectedColumn = iterNonPk.next();
 			sb.setLength(0);
-			//
-			if (!selectedCloumns.isEmpty()
-					&& !selectedCloumns.contains(introspectedColumn
-							.getActualColumnName().toLowerCase())) {
-				continue;
-			}
+
 			javaIndent(sb, 1);
 			sb.append(getResultAnnotation(interfaze, introspectedColumn, false,
 					introspectedTable.isConstructorBased()));
@@ -390,95 +165,40 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 			method.addAnnotation(sb.toString());
 		}
 
-		// bug fix
-		// FIXME
-		String s = method.getAnnotations().remove(
-				method.getAnnotations().size() - 1);
+		List<String> annotations = method.getAnnotations();
+		// remove last item and Check whether the comma at the end
+		String s = annotations.remove(annotations.size() - 1);
 		if (s.endsWith(",")) {
 			s = s.substring(0, s.length() - 1);
 		}
 		method.getAnnotations().add(s);
-
 		method.addAnnotation("})"); //$NON-NLS-1$
 	}
 
-	private void prosessByResultConfig(Interface interfaze, Method method,
-			DbSelectResult result, boolean hasScript, String sql) {
-		interfaze.addImportedType(new FullyQualifiedJavaType(
-				"org.apache.ibatis.annotations.Select")); //$NON-NLS-1$
-
-		StringBuilder sb = new StringBuilder();
-		method.addAnnotation("@Select({"); //$NON-NLS-1$
-
-		this.addScriptStart(hasScript, method);
-
-		String sqls[] = sql.split("\n");
-		for (int i = 0; i < sqls.length; i++) {
-			sb.setLength(0);
-			javaIndent(sb, 1);
-			sb.append("\"");
-			sb.append(sqls[i].trim());
-			sb.append("\"");
-			if (i < sqls.length - 1) {
-				sb.append(",");
-			}
-			javaIndent(sb, 1);
-			method.addAnnotation(sb.toString());
+	private void addAnnotatedResults(final Interface interfaze,
+			final Method method, final DbSelectResult result) {
+		if (null == result || null == result.getColumns()
+				|| result.getColumns().size() == 0) {
+			return;
 		}
-
-		this.addScriptEnd(hasScript, method);
-
-		method.addAnnotation("})"); //$NON-NLS-1$
-
 		interfaze.addImportedType(new FullyQualifiedJavaType(
 				"org.apache.ibatis.annotations.Result")); //$NON-NLS-1$
 		interfaze.addImportedType(new FullyQualifiedJavaType(
 				"org.apache.ibatis.annotations.Results")); //$NON-NLS-1$
 		method.addAnnotation("@Results({"); //$NON-NLS-1$
 		List<DbColumn> list = result.getColumns();
+		StringBuilder sb = new StringBuilder();
 		for (Iterator<DbColumn> i = list.iterator(); i.hasNext();) {
 			sb.setLength(0);
 			javaIndent(sb, 1);
 			DbColumn column = i.next();
-			sb.append(getResultAnnotation(interfaze, column.getName(),
-					column.getJavaProperty()));
+			sb.append(ResultAnnotationUtil.getResultAnnotation(interfaze,
+					column.getName(), column.getJavaProperty()));
 			if (i.hasNext()) {
 				sb.append(',');
 			}
-
 			method.addAnnotation(sb.toString());
 		}
 		method.addAnnotation("})"); //$NON-NLS-1$
-	}
-
-	protected String getResultAnnotation(Interface interfaze, String column,
-			String javaPropertyÏ) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("@Result(column=\""); //$NON-NLS-1$
-		sb.append(column);
-		sb.append("\", property=\""); //$NON-NLS-1$
-		sb.append(javaPropertyÏ);
-		sb.append('\"');
-		sb.append(')');
-
-		return sb.toString();
-	}
-
-	private void addScriptStart(final boolean hasScript, Method method) {
-		if (hasScript) {
-			StringBuilder sb = new StringBuilder();
-			javaIndent(sb, 1);
-			sb.append("\"<script>\",");
-			method.addAnnotation(sb.toString());
-		}
-	}
-
-	private void addScriptEnd(final boolean hasScript, Method method) {
-		if (hasScript) {
-			StringBuilder sb = new StringBuilder();
-			javaIndent(sb, 1);
-			sb.append(",\"</script>\"");
-			method.addAnnotation(sb.toString());
-		}
 	}
 }
