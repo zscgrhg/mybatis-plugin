@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.codehaus.plexus.util.StringUtils;
 import org.mybatis.generator.api.MyBatisGenerator;
 import org.mybatis.generator.config.Configuration;
 import org.mybatis.generator.config.xml.ConfigurationParser;
@@ -59,24 +60,28 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		this.properties = properties;
 	}
 
-	public List<MybatisBean> create(Database database, String url,
-			String databaseName, String userName, String password,
-			String dalPackage, String dir, boolean overwrite) {
+	public List<MybatisBean> create(final Database database, final String url,
+			final String databaseName, final String userName,
+			final String password, final String dalPackage, final String dir,
+			final boolean overwrite) {
 		return create(database, url, databaseName, userName, password,
 				dalPackage, dir, overwrite, new String[] {});
 	}
 
-	public List<MybatisBean> create(Database database, String url,
-			String databaseName, String userName, String password,
-			String dalPackage, String dir, boolean overwrite, String... tables) {
+	public List<MybatisBean> create(final Database database,
+			final String jdbcUrl, final String databaseName,
+			final String userName, final String password,
+			final String dalPackage, final String outputDir,
+			final boolean overwrite, final String... tables) {
 
-		dir = dir.replace(File.separator, "/");
+		String dir = outputDir.replace(File.separator, "/");
+		String url = jdbcUrl;
 		if (url.contains("&") && !url.contains("&amp;")) {
 			url = url.replace("&", "&amp;");
 		}
 
-		String java = dir + "/src/main/java/";
-		String res = dir + "/src/main/resources/";
+		final String java = dir + "/src/main/java/";
+		final String res = dir + "/src/main/resources/";
 
 		File f = new File(java);
 		if (!f.exists()) {
@@ -89,13 +94,13 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 		StringBuffer buf = new StringBuffer();
 
-		for (String name : tables) {
+		for (final String name : tables) {
 			buf.append(getTableString(database.getDatabaseEnum(), database,
 					name));
 		}
 		database.close();
 
-		StringBuffer sb = new StringBuffer();
+		final StringBuffer sb = new StringBuffer();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		sb.append(NEW_LINE);
 		sb.append("<!DOCTYPE generatorConfiguration");
@@ -256,65 +261,75 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 	private String getTableString(final DatabaseEnum dbEnum,
 			final Database database, final String tableName) {
-		String name = getTableName(tableName);
-		ColumnResult result = database.getColumns(name);
-		StringBuffer sb = new StringBuffer();
-		sb.append("    <table ");
-		sb.append("tableName=\"" + name + "\" ");
-		sb.append("domainObjectName=\"" + getObjectName(name) + "\" ");
-		sb.append("escapeWildcards=\"true\" ");
-		sb.append("enableSelectByExample=\"false\" ");
-		sb.append("enableDeleteByExample=\"false\" ");
-		sb.append("enableCountByExample=\"false\" ");
-		sb.append("enableUpdateByExample=\"false\">");
-		sb.append(NEW_LINE);
+		final String name = getTableName(tableName);
+		final ColumnResult result = database.getColumns(name);
+		final StringBuffer buf = new StringBuffer(300);
+		buf.append("    <table ");
+		buf.append("tableName=\"");
+		buf.append(name);
+		buf.append("\" ");
+		buf.append("domainObjectName=\"");
+		buf.append(getObjectName(name));
+		buf.append("\" ");
+		buf.append("escapeWildcards=\"true\" ");
+		buf.append("enableSelectByExample=\"false\" ");
+		buf.append("enableDeleteByExample=\"false\" ");
+		buf.append("enableCountByExample=\"false\" ");
+		buf.append("enableUpdateByExample=\"false\">");
+		buf.append(NEW_LINE);
 
-		List<String> list = result.getAutoIncrementPrimaryKeys();
-		for (String pk : list) {
-			sb.append("      <generatedKey column=\"" + pk + "\" ");
-			sb.append("sqlStatement=\"" + dbEnum.getSqlStatement() + "\" ");
-			sb.append("identity=\"true\" />");
-			sb.append(NEW_LINE);
+		final List<String> list = result.getAutoIncrementPrimaryKeys();
+		for (String key : list) {
+			buf.append("      <generatedKey column=\"");
+			buf.append(key);
+			buf.append("\" ");
+			buf.append("sqlStatement=\"");
+			buf.append(dbEnum.getSqlStatement());
+			buf.append("\" ");
+			buf.append("identity=\"true\" />");
+			buf.append(NEW_LINE);
 		}
-		sb.append("    </table>");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
-		return sb.toString();
+		buf.append("    </table>");
+		buf.append(NEW_LINE);
+		buf.append(NEW_LINE);
+		return buf.toString();
 	}
 
-	private String getObjectName(String table) {
-		if (table == null || table.trim().equals("")) {
+	private String getObjectName(final String table) {
+		if (StringUtils.isBlank(table)) {
 			return null;
 		}
-		// 除去中间空格
-		int index = table.indexOf(" ");
+		String tableName = table;
+		int index = tableName.indexOf(" ");
 		while (index != -1) {
-			if (index + 1 >= table.length() || index + 2 >= table.length()) {
-				table = table.replace(" ", "");
+			if (index + 1 >= tableName.length()
+					|| index + 2 >= tableName.length()) {
+				tableName = tableName.replace(" ", "");
 				break;
 			}
-			String s1 = table.substring(index + 1, index + 2);
+			String s1 = tableName.substring(index + 1, index + 2);
 			String s2 = s1.toUpperCase();
-			table = table.replace(" " + s1, "" + s2);
-			index = table.indexOf(" ");
+			tableName = tableName.replace(" " + s1, "" + s2);
+			index = tableName.indexOf(" ");
 		}
-		// 除去下划线
-		index = table.indexOf("_");
+		//
+		index = tableName.indexOf("_");
 		while (index != -1) {
-			if (index + 1 >= table.length() || index + 2 >= table.length()) {
-				table = table.replace("_", "");
+			if (index + 1 >= tableName.length()
+					|| index + 2 >= tableName.length()) {
+				tableName = tableName.replace("_", "");
 				break;
 			}
-			String s1 = table.substring(index + 1, index + 2);
+			String s1 = tableName.substring(index + 1, index + 2);
 			String s2 = s1.toUpperCase();
-			table = table.replace("_" + s1, "" + s2);
-			index = table.indexOf("_");
+			tableName = tableName.replace("_" + s1, "" + s2);
+			index = tableName.indexOf("_");
 		}
-		if (table.length() == 0) {
+		if (tableName.length() == 0) {
 			return null;
 		}
-		String s = table.substring(0, 1).toUpperCase()
-				+ table.substring(1, table.length());
+		String s = tableName.substring(0, 1).toUpperCase()
+				+ tableName.substring(1, tableName.length());
 		return s;
 	}
 

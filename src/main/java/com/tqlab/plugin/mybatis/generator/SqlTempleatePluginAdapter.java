@@ -338,23 +338,26 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 	 * @param sql
 	 * @return
 	 */
-	private List<String> parseSqlParameter(final List<String> list, String sql) {
+	private List<String> parseSqlParameter(final List<String> list,
+			final String sql) {
 		try {
-			int index = sql.indexOf('#');
+			String sqlTemp = sql;
+			int index = sqlTemp.indexOf('#');
 			if (index >= 0) {
-				sql = sql.substring(index + 2);
+				sqlTemp = sqlTemp.substring(index + 2);
 			} else {
 				return list;
 			}
 
-			index = sql.indexOf('}');
-			String parameter = sql.substring(0, index);
+			index = sqlTemp.indexOf('}');
+			final String parameter = sqlTemp.substring(0, index);
 			if (!list.contains(parameter)) {
 				list.add(parameter);
 			}
-			parseSqlParameter(list, sql);
+			parseSqlParameter(list, sqlTemp);
 		} catch (Exception e) {
-
+			throw new MybatisPluginException("Sql parameter parse error. SQL="
+					+ sql, e);
 		}
 
 		return list;

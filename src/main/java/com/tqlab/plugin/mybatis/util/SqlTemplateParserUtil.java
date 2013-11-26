@@ -342,7 +342,7 @@ public class SqlTemplateParserUtil {
 	}
 
 	private static FullyQualifiedJavaType getFullyQualifiedJavaType(
-			Context context, String resultType) {
+			final Context context, final String resultType) {
 		if (!isBasicType(resultType)) {
 			String basicPackage = context.getJavaModelGeneratorConfiguration()
 					.getTargetPackage();
@@ -450,12 +450,18 @@ public class SqlTemplateParserUtil {
 		javaElement.addJavaDocLine(sb.toString());
 	}
 
+	/**
+	 * 
+	 * @param jdbcTypeName
+	 * @return
+	 */
 	public static FullyQualifiedJavaType getFullyQualifiedJavaType(
-			String jdbcTypeName) {
-		if (null == jdbcTypeName || jdbcTypeName.trim().equals("")) {
-			jdbcTypeName = "JAVA_OBJECT";
+			final String jdbcTypeName) {
+		String jdbcType = jdbcTypeName;
+		if (null == jdbcType || jdbcType.trim().equals("")) {
+			jdbcType = "JAVA_OBJECT";
 		}
-		int type = JdbcTypeNameTranslator.getJdbcType(jdbcTypeName);
+		final int type = JdbcTypeNameTranslator.getJdbcType(jdbcType);
 		switch (type) {
 		case Types.TINYINT:
 		case Types.SMALLINT:
@@ -502,9 +508,9 @@ public class SqlTemplateParserUtil {
 		}
 	}
 
-	public static String parseJdbcTypeName(String str) {
-		String jdbcTypeName = str.replace("jdbcType", "").replace("=", "")
-				.trim();
+	public static String parseJdbcTypeName(final String str) {
+		final String jdbcTypeName = str.replace("jdbcType", "")
+				.replace("=", "").trim();
 		return jdbcTypeName;
 	}
 }

@@ -49,7 +49,8 @@ public class MySQLDatabase extends AbstractDatabase {
 		return "show tables;";
 	}
 
-	protected String getTableName(ResultSet resultSet) throws SQLException {
+	protected String getTableName(final ResultSet resultSet)
+			throws SQLException {
 		String name = (String) resultSet.getObject(1);
 		if (null != name) {
 			name = name.toLowerCase();
@@ -63,10 +64,11 @@ public class MySQLDatabase extends AbstractDatabase {
 	}
 
 	@Override
-	protected String getColumnsQuerySql(String tableName) {
-		if (null == tableName) {
+	protected String getColumnsQuerySql(final String table) {
+		if (null == table) {
 			return null;
 		}
+		String tableName = table;
 		if (!tableName.startsWith("`")) {
 			tableName = "`" + tableName;
 		}
@@ -77,10 +79,11 @@ public class MySQLDatabase extends AbstractDatabase {
 	}
 
 	@Override
-	protected String getColumnName(String columnName) {
-		if (null == columnName) {
+	protected String getColumnName(final String column) {
+		if (null == column) {
 			return null;
 		}
+		String columnName = column;
 		if (!columnName.startsWith("`")) {
 			columnName = "`" + columnName;
 		}

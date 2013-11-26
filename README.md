@@ -18,7 +18,7 @@ Mybatis Generator Plugin Extension
 			<plugin>
 				<groupId>com.tqlab.plugin</groupId>
 				<artifactId>tqlab-mybatis-plugin</artifactId>
-				<version>1.0.2</version>
+				<version>1.0.4</version>
 				<executions>
 					<execution>
 						<id>Generate MyBatis Artifacts</id>
@@ -77,7 +77,10 @@ properties|extra config||false
 <pre>
 <code>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;table name=&quot;star&quot;&gt;
+&lt;table xmlns="http://schema.tqlab.com/mybatis" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://schema.tqlab.com/mybatis http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd"
+	 name=&quot;star&quot;&gt;
 
 	&lt;operation id=&quot;deleteById&quot;&gt;
 		&lt;sql&gt;

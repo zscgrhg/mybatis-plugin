@@ -63,11 +63,12 @@ public class HsqldbDatabase extends AbstractDatabase {
 	}
 
 	@Override
-	protected String getColumnName(String columnName) {
+	protected String getColumnName(final String column) {
 
-		if (null == columnName) {
+		if (null == column) {
 			return null;
 		}
+		String columnName = column;
 		if (!columnName.startsWith("[")) {
 			columnName = "[" + columnName;
 		}
