@@ -227,6 +227,12 @@ public class SqlTemplateParserUtil {
 				dbSelectResult.setType(fullyQualifiedJavaType);
 				operation.setResult(dbSelectResult);
 			}
+			//
+			if (operation.getResult() == null) {
+				DbSelectResult dbSelectResult = new DbSelectResult();
+				dbSelectResult.setType(fullyQualifiedJavaType);
+				operation.setResult(dbSelectResult);
+			}
 		}
 
 		if (null != params && null != params.elements(PARAM)) {

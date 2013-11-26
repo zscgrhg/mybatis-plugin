@@ -76,4 +76,5 @@ public class ScriptUtil {
 		}
 		return str.toLowerCase().startsWith("<script>");
 	}
+
 }

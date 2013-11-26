@@ -23,7 +23,6 @@ public class SelectAnnotationUtil {
 			.getLogger(SelectAnnotationUtil.class);
 
 	/**
-	 * 
 	 * @param introspectedTable
 	 * @param interfaze
 	 * @param method
