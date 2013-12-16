@@ -32,7 +32,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.StringUtils;
 import org.mybatis.generator.api.MyBatisGenerator;
 import org.mybatis.generator.config.Configuration;
 import org.mybatis.generator.config.xml.ConfigurationParser;
@@ -218,7 +217,6 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 			DefaultShellCallback shellCallback = new DefaultShellCallback(
 					overwrite);
-
 			MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config,
 					shellCallback, warnings);
 			myBatisGenerator.generate(null);
@@ -296,7 +294,7 @@ public class MybatisCreaterImpl implements MybatisCreater {
 	}
 
 	private String getObjectName(final String table) {
-		if (StringUtils.isBlank(table)) {
+		if (null==table||"".equals(table.trim())) {
 			return null;
 		}
 		String tableName = table;

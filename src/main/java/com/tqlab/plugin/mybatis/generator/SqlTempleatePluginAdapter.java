@@ -123,7 +123,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				.getAliasedFullyQualifiedTableNameAtRuntime();
 		final DbTable dbTable = this.map.get(tableName.toLowerCase());
 		if (null == dbTable) {
-			return false;
+			return true;
 		}
 
 		final FullyQualifiedJavaType parameterType = introspectedTable

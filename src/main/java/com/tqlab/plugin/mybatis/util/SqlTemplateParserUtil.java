@@ -49,7 +49,7 @@ import com.tqlab.plugin.mybatis.generator.SimpleErrorHandler;
  * @author John Lee
  * 
  */
-public class SqlTemplateParserUtil {
+public final class SqlTemplateParserUtil {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(SqlTemplateParserUtil.class);
@@ -75,6 +75,10 @@ public class SqlTemplateParserUtil {
 	private static final String MYBATIS_XSD_LOCAL = "/com/tqlab/plugin/mybatis/tqlab-mybatis-plugin.xsd";
 	private static final String MYBATIS_XSD_REMOTE = "http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd";
 	private static final String FEATURE = "http://apache.org/xml/features/validation/schema";
+
+	private SqlTemplateParserUtil() {
+
+	}
 
 	private static SAXReader reader;
 
@@ -119,6 +123,7 @@ public class SqlTemplateParserUtil {
 	public static DbTable parseDbTable(Context context, File file,
 			Map<String, GeneratedJavaFile> maps) {
 
+		LOGGER.info("start parse file :	" + file);
 		Document document = null;
 		try {
 			SAXReader reader = getSAXReader();

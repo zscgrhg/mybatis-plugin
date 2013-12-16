@@ -17,10 +17,14 @@ import com.tqlab.plugin.mybatis.generator.GeneratorCallback;
  * @author John Lee
  * 
  */
-public class SelectAnnotationUtil {
+public final class SelectAnnotationUtil {
 
 	private static final Logger LOGGER = Logger
 			.getLogger(SelectAnnotationUtil.class);
+
+	private SelectAnnotationUtil() {
+
+	}
 
 	/**
 	 * @param introspectedTable
@@ -48,8 +52,9 @@ public class SelectAnnotationUtil {
 	 * @param sql
 	 */
 	private static void doSelectAnnotation(
-			final IntrospectedTable introspectedTable, Interface interfaze,
-			final Method method, final boolean hasScript, final String sql) {
+			final IntrospectedTable introspectedTable,
+			final Interface interfaze, final Method method,
+			final boolean hasScript, final String sql) {
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("table: "
@@ -59,16 +64,16 @@ public class SelectAnnotationUtil {
 
 		interfaze.addImportedType(new FullyQualifiedJavaType(
 				"org.apache.ibatis.annotations.Select")); //$NON-NLS-1$
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder buf = new StringBuilder(256);
 		method.addAnnotation("@Select({"); //$NON-NLS-1$
 		ScriptUtil.addScriptStart(hasScript, method);
 
-		javaIndent(sb, 1);
-		sb.append("\"");
-		sb.append(sql); //$NON-NLS-1$
-		sb.append("\"");
+		javaIndent(buf, 1);
+		buf.append(Constants.QUOTE);
+		buf.append(sql); //$NON-NLS-1$
+		buf.append(Constants.QUOTE);
 
-		method.addAnnotation(sb.toString());
+		method.addAnnotation(buf.toString());
 
 		ScriptUtil.addScriptEnd(hasScript, method);
 		method.addAnnotation("})"); // $NO

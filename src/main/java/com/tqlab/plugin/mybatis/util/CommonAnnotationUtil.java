@@ -17,7 +17,11 @@ import org.mybatis.generator.api.dom.java.Method;
  * @author John Lee
  * 
  */
-public class CommonAnnotationUtil {
+public final class CommonAnnotationUtil {
+
+	private CommonAnnotationUtil() {
+
+	}
 
 	/**
 	 * 
@@ -29,17 +33,17 @@ public class CommonAnnotationUtil {
 	 */
 	public static void addAnnotation(final Interface interfaze,
 			final Method method, final boolean hasScript, final String sql,
-			Class<?> clazz) {
+			final Class<?> clazz) {
 		interfaze.addImportedType(new FullyQualifiedJavaType(clazz.getName())); //$NON-NLS-1$
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
 		method.addAnnotation("@" + clazz.getSimpleName() + "({"); //$NON-NLS-1$
 		ScriptUtil.addScriptStart(hasScript, method);
-		javaIndent(sb, 1);
-		sb.append("\"");
-		sb.append(sql.replace("\n", " "));
-		sb.append("\"");
-		javaIndent(sb, 1);
-		method.addAnnotation(sb.toString());
+		javaIndent(buf, 1);
+		buf.append((char) '"');
+		buf.append(sql.replace("\n", " "));
+		buf.append((char) '"');
+		javaIndent(buf, 1);
+		method.addAnnotation(buf.toString());
 		ScriptUtil.addScriptEnd(hasScript, method);
 		method.addAnnotation("})"); //$NON-NLS-1$
 	}

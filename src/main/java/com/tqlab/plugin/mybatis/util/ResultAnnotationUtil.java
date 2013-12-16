@@ -7,7 +7,11 @@ import org.mybatis.generator.api.dom.java.Interface;
  * @author John Lee
  * 
  */
-public class ResultAnnotationUtil {
+public final class ResultAnnotationUtil {
+
+	private ResultAnnotationUtil() {
+
+	}
 
 	/**
 	 * 
@@ -16,16 +20,16 @@ public class ResultAnnotationUtil {
 	 * @param javaProperty
 	 * @return
 	 */
-	public static String getResultAnnotation(Interface interfaze,
-			String column, String javaProperty) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("@Result(column=\""); //$NON-NLS-1$
-		sb.append(column);
-		sb.append("\", property=\""); //$NON-NLS-1$
-		sb.append(javaProperty);
-		sb.append('\"');
-		sb.append(')');
+	public static String getResultAnnotation(final Interface interfaze,
+			final String column, final String javaProperty) {
+		final StringBuilder buf = new StringBuilder(64);
+		buf.append("@Result(column=\""); //$NON-NLS-1$
+		buf.append(column);
+		buf.append("\", property=\""); //$NON-NLS-1$
+		buf.append(javaProperty);
+		buf.append((char)'"');
+		buf.append(')');
 
-		return sb.toString();
+		return buf.toString();
 	}
 }

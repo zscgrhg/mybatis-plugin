@@ -5,6 +5,8 @@ package com.tqlab.plugin.mybatis.util;
 
 import static org.mybatis.generator.api.dom.OutputUtilities.javaIndent;
 
+import java.util.Locale;
+
 import org.codehaus.plexus.util.StringUtils;
 import org.mybatis.generator.api.dom.java.Method;
 
@@ -12,7 +14,11 @@ import org.mybatis.generator.api.dom.java.Method;
  * @author John Lee
  * 
  */
-public class ScriptUtil {
+public final class ScriptUtil {
+
+	private ScriptUtil() {
+
+	}
 
 	/**
 	 * 
@@ -22,10 +28,13 @@ public class ScriptUtil {
 	public static void addScriptStart(final boolean hasScript,
 			final Method method) {
 		if (hasScript) {
-			StringBuilder sb = new StringBuilder();
-			javaIndent(sb, 1);
-			sb.append("\"<script>\",");
-			method.addAnnotation(sb.toString());
+			final StringBuilder buf = new StringBuilder();
+			javaIndent(buf, 1);
+			buf.append(Constants.QUOTE);
+			buf.append(Constants.SCRIPT_START);
+			buf.append(Constants.QUOTE);
+			buf.append(Constants.COMMA);
+			method.addAnnotation(buf.toString());
 		}
 	}
 
@@ -36,10 +45,13 @@ public class ScriptUtil {
 	 */
 	public static void addScriptEnd(final boolean hasScript, final Method method) {
 		if (hasScript) {
-			StringBuilder sb = new StringBuilder();
-			javaIndent(sb, 1);
-			sb.append(",\"</script>\"");
-			method.addAnnotation(sb.toString());
+			final StringBuilder buf = new StringBuilder();
+			javaIndent(buf, 1);
+			buf.append(Constants.COMMA);
+			buf.append(Constants.QUOTE);
+			buf.append(Constants.SCRIPT_END);
+			buf.append(Constants.QUOTE);
+			method.addAnnotation(buf.toString());
 		}
 	}
 
@@ -49,19 +61,19 @@ public class ScriptUtil {
 	 * @return
 	 */
 	public static String trimScript(final String str) {
-		if (StringUtils.isBlank(str)) {
-			return str;
-		}
-
 		String result = str;
-		String s = str.toLowerCase();
-		if (s.startsWith("<script>")) {
-			result = str.substring(8);
+		if (!StringUtils.isBlank(result)) {
+
+			final String temp = str.toLowerCase(Locale.getDefault());
+			if (temp.startsWith(Constants.SCRIPT_START)) {
+				result = result.substring(8);
+			}
+
+			if (temp.endsWith(Constants.SCRIPT_END)) {
+				result = result.substring(0, result.length() - 9);
+			}
 		}
 
-		if (s.endsWith("</script>")) {
-			result = result.substring(0, result.length() - 9);
-		}
 		return result;
 	}
 
@@ -70,11 +82,15 @@ public class ScriptUtil {
 	 * @param str
 	 * @return
 	 */
-	public static final boolean hasScript(final String str) {
+	public static boolean hasScript(final String str) {
+		boolean result;
 		if (StringUtils.isBlank(str)) {
-			return false;
+			final String temp = str.toLowerCase(Locale.getDefault());
+			result = temp.startsWith(Constants.SCRIPT_START);
+		} else {
+			result = false;
 		}
-		return str.toLowerCase().startsWith("<script>");
+		return result;
 	}
 
 }

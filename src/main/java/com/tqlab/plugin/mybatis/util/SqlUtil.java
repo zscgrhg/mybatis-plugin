@@ -7,7 +7,7 @@ package com.tqlab.plugin.mybatis.util;
  * @author John Lee
  * 
  */
-public class SqlUtil {
+public final class SqlUtil {
 
 	/**
 	 * <xxxx /> or <xxxx>fff</xxxx>
@@ -30,6 +30,10 @@ public class SqlUtil {
 	 */
 	private static final String LIMIT_PATTERN = "([Ll][Ii][Mm][Ii][Tt])(\\s*(\\d+|"
 			+ PARAM_PATTERN + "),\\s*)?(\\s*(\\d+|" + PARAM_PATTERN + "))";
+
+	private SqlUtil() {
+
+	}
 
 	/**
 	 * 
@@ -75,7 +79,7 @@ public class SqlUtil {
 	 * @param sql
 	 * @return
 	 */
-	public static final String trimSql(final String sql) {
+	public static String trimSql(final String sql) {
 		String s = sql.trim();
 		s = ScriptUtil.trimScript(s);
 		s = SqlUtil.filterBlank(s, " ");

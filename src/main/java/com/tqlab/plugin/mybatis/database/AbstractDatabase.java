@@ -39,18 +39,26 @@ public abstract class AbstractDatabase implements Database {
 	private static final Logger LOGGER = Logger
 			.getLogger(AbstractDatabase.class);
 
-	private String driverClass;
-	private String database;
-	private String url;
-	private String user;
-	private String password;
+	private final transient String driverClass;
+	private final transient String database;
+	private final transient String url;
+	private final transient String user;
+	private final transient String password;
 	/**
 	 * Database connection
 	 */
-	private Connection conn;
+	private transient Connection conn;
 
-	public AbstractDatabase(String driverClass, String database, String url,
-			String user, String password) {
+	/**
+	 * 
+	 * @param driverClass
+	 * @param database
+	 * @param url
+	 * @param user
+	 * @param password
+	 */
+	public AbstractDatabase(final String driverClass, final String database,
+			final String url, final String user, final String password) {
 		this.driverClass = driverClass;
 		this.database = database;
 		this.url = url;
@@ -66,11 +74,11 @@ public abstract class AbstractDatabase implements Database {
 	 */
 	protected Connection getConnection() throws SQLException {
 		try {
-			if (null != conn && !conn.isClosed()) {
-				return conn;
+			if (null == conn || conn.isClosed()) {
+				Class.forName(driverClass);
+				conn = DriverManager.getConnection(url, user, password);
 			}
-			Class.forName(driverClass);
-			conn = DriverManager.getConnection(url, user, password);
+
 		} catch (ClassNotFoundException e) {
 			throw new MybatisPluginException(e);
 		}
@@ -98,14 +106,14 @@ public abstract class AbstractDatabase implements Database {
 		try {
 			final Connection conn = this.getConnection();
 			stmt = conn.createStatement();
-			String sql = getColumnsQuerySql(tableName);
+			final String sql = getColumnsQuerySql(tableName);
 			res = stmt.executeQuery(sql);
 			ResultSetMetaData rsmd = res.getMetaData();
 			int colcount = rsmd.getColumnCount();// 取得全部列数
 
 			List<String> autoIncrementColumn = new ArrayList<String>();
 			for (int i = 1; i <= colcount; i++) {
-				String column = getColumnName(rsmd.getColumnName(i));
+				final String column = getColumnName(rsmd.getColumnName(i));
 				columns.add(column);
 				// Indicates whether the designated column is automatically
 				// numbered.
@@ -224,4 +232,5 @@ public abstract class AbstractDatabase implements Database {
 			ex.printStackTrace();
 		}
 	}
+
 }

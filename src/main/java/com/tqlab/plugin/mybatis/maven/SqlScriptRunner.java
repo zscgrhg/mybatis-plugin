@@ -44,14 +44,15 @@ class SqlScriptRunner {
 	private static final Logger LOGGER = Logger
 			.getLogger(SqlScriptRunner.class);
 
-	private String driver;
-	private String url;
-	private String userid;
-	private String password;
-	private String sourceFile;
+	private final transient String driver;
+	private final transient String url;
+	private final transient String userid;
+	private final transient String password;
+	private final transient String sourceFile;
 
-	public SqlScriptRunner(String sourceFile, String driver, String url,
-			String userId, String password) throws MojoExecutionException {
+	public SqlScriptRunner(final String sourceFile, final String driver,
+			final String url, final String userId, final String password)
+			throws MojoExecutionException {
 
 		if (!StringUtility.stringHasValue(sourceFile)) {
 			throw new MojoExecutionException("SQL script file is required");
@@ -108,22 +109,6 @@ class SqlScriptRunner {
 		} finally {
 			closeConnection(connection);
 		}
-	}
-
-	public String getDriver() {
-		return driver;
-	}
-
-	public void setDriver(String driver) {
-		this.driver = driver;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	private void closeConnection(Connection connection) {
