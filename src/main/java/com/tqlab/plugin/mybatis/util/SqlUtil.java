@@ -29,7 +29,9 @@ public final class SqlUtil {
 	 * Limit 0, #{size,jdbcType=BIGINT}
 	 */
 	private static final String LIMIT_PATTERN = "([Ll][Ii][Mm][Ii][Tt])(\\s*(\\d+|"
-			+ PARAM_PATTERN + "),\\s*)?(\\s*(\\d+|" + PARAM_PATTERN + "))";
+			+ PARAM_PATTERN
+			+ ")\\s*(,|([Oo][Ff][Ff][Ss][Ee][Tt]))\\s*)?(\\s*(\\d+|"
+			+ PARAM_PATTERN + "))";
 
 	private SqlUtil() {
 

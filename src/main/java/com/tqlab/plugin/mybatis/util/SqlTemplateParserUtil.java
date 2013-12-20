@@ -4,6 +4,7 @@
 package com.tqlab.plugin.mybatis.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -128,7 +129,7 @@ public final class SqlTemplateParserUtil {
 		try {
 			SAXReader reader = getSAXReader();
 			//
-			document = reader.read(file);
+			document = reader.read(new FileInputStream(file));
 		} catch (Exception e) {
 			LOGGER.error("Parse sql template file error. File :" + file, e);
 		}

@@ -62,7 +62,7 @@
 			<plugin>
 				<groupId>com.tqlab.plugin</groupId>
 				<artifactId>tqlab-mybatis-plugin</artifactId>
-				<version>1.0.2</version>
+				<version>1.0.5</version>
 				<executions>
 					<execution>
 						<id>Generate MyBatis Artifacts</id>
@@ -82,6 +82,7 @@
 					<packages>com.tqlab.demo.dal</packages>
 					<sqlTemplatePath>${project.basedir}/src/main/resources/sqltemplate/hsqldb/</sqlTemplatePath>
 					<overwrite>true</overwrite>
+					<generateJdbcConfig>true</generateJdbcConfig>
 				</configuration>
 			</plugin>
 		</plugins>
