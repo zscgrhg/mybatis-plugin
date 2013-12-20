@@ -23,7 +23,7 @@
 	<groupId>com.tqlab.plugin</groupId>
 	<artifactId>tqlab-mybatis-plugin</artifactId>
 	<name>tqlab-mybatis-plugin</name>
-	<version>1.0.5</version>
+	<version>1.0.6-SNAPSHOT</version>
 	<description>tqlab mybatis plugin</description>
 	<url>${site.url}</url>
 	<packaging>maven-plugin</packaging>
@@ -40,7 +40,7 @@
 		<connection>scm:git:git@github.com:tqlab/mybatis-plugin.git</connection>
 		<developerConnection>scm:git:git@github.com:tqlab/mybatis-plugin.git</developerConnection>
 		<url>https://github.com/tqlab/mybatis-plugin</url>
-		<tag>v1.0.5</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<developers>
