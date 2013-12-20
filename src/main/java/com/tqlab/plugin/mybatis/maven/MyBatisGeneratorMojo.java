@@ -35,6 +35,7 @@ import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.StringUtils;
 import org.mybatis.generator.internal.util.StringUtility;
 
 import com.tqlab.plugin.mybatis.database.Database;
@@ -43,6 +44,7 @@ import com.tqlab.plugin.mybatis.database.DatabaseFactoryImpl;
 import com.tqlab.plugin.mybatis.generator.MybatisBean;
 import com.tqlab.plugin.mybatis.generator.MybatisCreater;
 import com.tqlab.plugin.mybatis.generator.MybatisCreaterImpl;
+import com.tqlab.plugin.mybatis.util.Constants;
 
 /**
  * Goal which generates MyBatis/iBATIS artifacts.
@@ -85,6 +87,12 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	 */
 	@Parameter(property = "mybatis.generator.tableNames")
 	private String tableNames;
+
+	/**
+	 * The table name's prefix. For example, db_xxxxxx.
+	 */
+	@Parameter(property = "mybatis.generator.tablePrefix", defaultValue = "")
+	private String tablePrefix;
 
 	/**
 	 * The application database name
@@ -204,11 +212,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		}
 
 		try {
-			Properties properties = new Properties();
-			properties.put("sql.template.path", sqlTemplatePath);
-			//
-			properties.put("use.cache", useCache);
-			properties.putAll(this.properties);
+			Properties properties = buildProperties();
 
 			String tablesArray[] = fullyqualifiedTables.toArray(new String[0]);
 			MybatisCreater creater = new MybatisCreaterImpl(properties);
@@ -227,16 +231,16 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				StringBuffer replaceBuf = new StringBuffer();
 				replaceBuf.append("jdbc.driver=");
 				replaceBuf.append(databaseObj.getDirverClass());
-				replaceBuf.append("\r\n");
+				replaceBuf.append(Constants.LINE_SEPARATOR);
 				replaceBuf.append("jdbc.url=");
 				replaceBuf.append(getJDBCUrl());
-				replaceBuf.append("\r\n");
+				replaceBuf.append(Constants.LINE_SEPARATOR);
 				replaceBuf.append("jdbc.username=");
 				replaceBuf.append(jdbcUserId);
-				replaceBuf.append("\r\n");
+				replaceBuf.append(Constants.LINE_SEPARATOR);
 				replaceBuf.append("jdbc.password=");
 				replaceBuf.append(getJDBCPassword());
-				replaceBuf.append("\r\n");
+				replaceBuf.append(Constants.LINE_SEPARATOR);
 				this.write(outputDirectory.getAbsolutePath() + File.separator
 						+ "src/main/resources/", "jdbc.properties",
 						"jdbc.template", "${jdbc}", replaceBuf.toString());
@@ -250,7 +254,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				StringBuffer replaceBuf = new StringBuffer();
 				for (MybatisBean bean : list) {
 					replaceBuf.append(bean.toString());
-					replaceBuf.append("\r\n");
+					replaceBuf.append(Constants.LINE_SEPARATOR);
 				}
 				this.write(outputDirectory.getAbsolutePath() + File.separator
 						+ "src/main/resources/META-INF/spring/",
@@ -266,7 +270,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				StringBuffer replaceBuf = new StringBuffer();
 				for (MybatisBean bean : list) {
 					replaceBuf.append(bean.toOsgiServiceString());
-					replaceBuf.append("\r\n");
+					replaceBuf.append(Constants.LINE_SEPARATOR);
 				}
 				this.write(outputDirectory.getAbsolutePath() + File.separator
 						+ "src/main/resources/META-INF/spring/",
@@ -295,7 +299,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		StringBuffer buf = new StringBuffer();
 		while (null != (line = br.readLine())) {
 			buf.append(line);
-			buf.append("\r\n");
+			buf.append(Constants.LINE_SEPARATOR);
 		}
 
 		String result = buf.toString().replace(replaceStr, repalceValue);
@@ -362,5 +366,22 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				database.getDirverClass(), getJDBCUrl(), jdbcUserId,
 				getJDBCPassword());
 		scriptRunner.executeScript();
+	}
+
+	private Properties buildProperties() {
+		Properties properties = new Properties();
+		if (StringUtils.isNotBlank(sqlTemplatePath)) {
+			properties.put(Constants.SQL_TEMPLATE_PATH, sqlTemplatePath);
+		}
+		if (StringUtils.isNotBlank(useCache)) {
+			properties.put(Constants.USE_CACHE, useCache);
+		}
+		if (StringUtils.isNotBlank(tablePrefix)) {
+			properties.put(Constants.TABLE_PREFIX, tablePrefix);
+		}
+		if (null != properties) {
+			properties.putAll(this.properties);
+		}
+		return properties;
 	}
 }

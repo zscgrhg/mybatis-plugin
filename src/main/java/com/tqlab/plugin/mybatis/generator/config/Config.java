@@ -8,6 +8,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
+import com.tqlab.plugin.mybatis.util.Constants;
+
 /**
  * @author John Lee
  * 
@@ -40,6 +42,14 @@ public class Config {
 	}
 
 	public boolean isUseCache() {
-		return "true".equalsIgnoreCase((String) props.get("use.cache"));
+		return "true".equalsIgnoreCase((String) props.get(Constants.USE_CACHE));
+	}
+
+	public String getTablePrefix() {
+		String prefix = (String) props.get(Constants.TABLE_PREFIX);
+		if (null != prefix) {
+			prefix = prefix.trim().toLowerCase();
+		}
+		return prefix;
 	}
 }

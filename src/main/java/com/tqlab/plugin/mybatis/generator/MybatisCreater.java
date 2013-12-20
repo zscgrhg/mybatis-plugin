@@ -27,23 +27,6 @@ import com.tqlab.plugin.mybatis.database.Database;
 public interface MybatisCreater {
 
 	/**
-	 * Mybatis config
-	 * 
-	 * @param database
-	 * @param url
-	 * @param databaseName
-	 * @param userName
-	 * @param password
-	 * @param dalPackage
-	 * @param dir
-	 * @param overwrite
-	 * @return
-	 */
-	List<MybatisBean> create(Database database, String url,
-			String databaseName, String userName, String password,
-			String dalPackage, String dir, boolean overwrite);
-
-	/**
 	 * 
 	 * @param database
 	 * @param url

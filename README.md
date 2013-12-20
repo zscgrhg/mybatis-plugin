@@ -6,7 +6,7 @@ Mybatis Generator Plugin Extension
 <dependency>
     <groupId>com.tqlab.plugin</groupId>
     <artifactId>tqlab-mybatis-plugin</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
@@ -18,7 +18,7 @@ Mybatis Generator Plugin Extension
 			<plugin>
 				<groupId>com.tqlab.plugin</groupId>
 				<artifactId>tqlab-mybatis-plugin</artifactId>
-				<version>1.0.4</version>
+				<version>1.0.5</version>
 				<executions>
 					<execution>
 						<id>Generate MyBatis Artifacts</id>
@@ -59,6 +59,7 @@ jdbcURL			|Database url		|	|true
 jdbcUserId		|Database user		|	|false
 jdbcPassword	|Database password	|	|false
 tableNames		|Comma delimited list of table names to generate|all tables of current database|false
+tablePrefix		|For example, table name: wp_xxxx, the word 'wp' is the table prefix||false
 database		|Database			|	|true
 dbName			|Database name, mysql，hsqldb etc.||true
 packages		|Java package name, com.tqlab.test etc.||true
@@ -190,5 +191,7 @@ properties|extra config||false
 1. Add mybatis sql template xml Scheam support.
 2. Add log4j support when generate Java Mapper.
 3. Add tableNames validate.
-4. Add jsqlpaser for SQL validation 
-5. Delete unused code.
+4. Add jsqlpaser for SQL validation. 
+5. Add tablePrefix config support.
+6. Add auto delete ..*.dao /..*.dataobject package files when set overwrite is ture.
+7. Delete unused code.

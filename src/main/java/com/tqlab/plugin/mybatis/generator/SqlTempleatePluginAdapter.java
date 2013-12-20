@@ -57,6 +57,7 @@ import org.mybatis.generator.config.Context;
 
 import com.tqlab.plugin.mybatis.MybatisPluginException;
 import com.tqlab.plugin.mybatis.generator.config.Config;
+import com.tqlab.plugin.mybatis.util.Constants;
 import com.tqlab.plugin.mybatis.util.ScriptUtil;
 import com.tqlab.plugin.mybatis.util.SqlTemplateParserUtil;
 import com.tqlab.plugin.mybatis.util.SqlUtil;
@@ -68,7 +69,6 @@ import com.tqlab.plugin.mybatis.util.SqlUtil;
 public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 	private static final String CACHE_NAMESPACE_FQN = "org.apache.ibatis.annotations.CacheNamespace";
-	private static final String SQL_TEMPLATE_PATH = "sql.template.path";
 	private static final String WITH_XML = ".xml";
 
 	private Map<String, DbTable> map = new HashMap<String, DbTable>();
@@ -83,7 +83,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 	public void setProperties(Properties properties) {
 		super.setProperties(properties);
 
-		String sqlTemplatePath = properties.getProperty(SQL_TEMPLATE_PATH);
+		String sqlTemplatePath = properties
+				.getProperty(Constants.SQL_TEMPLATE_PATH);
 
 		if (null == sqlTemplatePath) {
 			return;

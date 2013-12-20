@@ -55,7 +55,7 @@ public class MySQLDatabase extends AbstractDatabase {
 		if (null != name) {
 			name = name.toLowerCase();
 		}
-		return "`" + name + "`";
+		return name;
 	}
 
 	@Override

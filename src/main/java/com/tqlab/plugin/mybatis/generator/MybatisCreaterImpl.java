@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.mybatis.generator.api.MyBatisGenerator;
 import org.mybatis.generator.config.Configuration;
@@ -42,6 +44,8 @@ import org.mybatis.generator.internal.DefaultShellCallback;
 import com.tqlab.plugin.mybatis.database.ColumnResult;
 import com.tqlab.plugin.mybatis.database.Database;
 import com.tqlab.plugin.mybatis.database.DatabaseEnum;
+import com.tqlab.plugin.mybatis.generator.config.Config;
+import com.tqlab.plugin.mybatis.util.Constants;
 
 /**
  * @author John Lee
@@ -49,22 +53,14 @@ import com.tqlab.plugin.mybatis.database.DatabaseEnum;
  */
 public class MybatisCreaterImpl implements MybatisCreater {
 
-	private static final String NEW_LINE = "\r\n";
-
 	private static final Logger LOGGER = Logger
 			.getLogger(MybatisCreaterImpl.class);
+	private Config config;
 	private Properties properties;
 
 	public MybatisCreaterImpl(Properties properties) {
+		this.config = new Config(properties);
 		this.properties = properties;
-	}
-
-	public List<MybatisBean> create(final Database database, final String url,
-			final String databaseName, final String userName,
-			final String password, final String dalPackage, final String dir,
-			final boolean overwrite) {
-		return create(database, url, databaseName, userName, password,
-				dalPackage, dir, overwrite, new String[] {});
 	}
 
 	public List<MybatisBean> create(final Database database,
@@ -91,36 +87,52 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			f.mkdirs();
 		}
 
+		if (overwrite) {
+			File packageFile = new File(new File(java), dalPackage.replace('.',
+					'/'));
+			File daoPackageFile = new File(packageFile, "dao");
+			File dataobjectPackageFile = new File(packageFile, "dataobject");
+			try {
+				if (daoPackageFile.exists()) {
+					FileUtils.deleteDirectory(daoPackageFile);
+				}
+				if (dataobjectPackageFile.exists()) {
+					FileUtils.deleteDirectory(dataobjectPackageFile);
+				}
+			} catch (IOException e) {
+				LOGGER.error("Delete file error.", e);
+			}
+		}
 		StringBuffer buf = new StringBuffer();
 
 		for (final String name : tables) {
 			buf.append(getTableString(database.getDatabaseEnum(), database,
-					name));
+					name, tables));
 		}
 		database.close();
 
 		final StringBuffer sb = new StringBuffer();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("<!DOCTYPE generatorConfiguration");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append(" PUBLIC \"-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN\"");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append(" \"http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd\">");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("<generatorConfiguration>");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("  <context id=\""
 				+ databaseName
 				+ "\" targetRuntime=\"MyBatis3\" defaultModelType=\"hierarchical\">");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <plugin type=\"org.mybatis.generator.plugins.SerializablePlugin\" />");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <plugin type=\"com.tqlab.plugin.mybatis.generator.SqlTempleatePluginAdapter\" >");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		if (null != properties) {
 			Set<Entry<Object, Object>> set = properties.entrySet();
 			for (Iterator<Entry<Object, Object>> i = set.iterator(); i
@@ -128,77 +140,79 @@ public class MybatisCreaterImpl implements MybatisCreater {
 				Entry<Object, Object> e = i.next();
 				sb.append("      <property name=\"" + e.getKey()
 						+ "\" value=\"" + e.getValue() + "\" />");
-				sb.append(NEW_LINE);
+				sb.append(Constants.LINE_SEPARATOR);
 			}
 		}
 		sb.append("    </plugin>");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <commentGenerator>");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      <property name=\"suppressDate\" value=\"true\" />");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    </commentGenerator>");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <jdbcConnection driverClass=\""
 				+ database.getDirverClass() + "\"");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      connectionURL=\"" + url + "\"");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      userId=\"" + userName + "\"");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      password=\"" + password + "\">");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    </jdbcConnection>");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <javaTypeResolver >");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      <property name=\"forceBigDecimals\" value=\"false\" />");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    </javaTypeResolver>");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <javaModelGenerator targetPackage=\"" + dalPackage
 				+ ".dataobject" + "\" targetProject=\"" + java + "\">");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      <property name=\"enableSubPackages\" value=\"true\" />");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      <property name=\"trimStrings\" value=\"true\" />");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    </javaModelGenerator>");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <sqlMapGenerator targetPackage=\"sqlmaps\"  targetProject=\""
 				+ res + "\">");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      <property name=\"enableSubPackages\" value=\"true\" />");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    </sqlMapGenerator>");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <javaClientGenerator  type=\"ANNOTATEDMAPPER\" targetPackage=\""
 				+ dalPackage + ".dao\"" + " targetProject=\"" + java + "\">");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      <property name=\"enableSubPackages\" value=\"true\" />");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    </javaClientGenerator >");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <!-- tables -->");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append(buf.toString());
 		sb.append("    <!-- tables end -->");
-		sb.append(NEW_LINE);
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("  </context>");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("</generatorConfiguration>");
-		sb.append(NEW_LINE);
+		sb.append(Constants.LINE_SEPARATOR);
 
 		LOGGER.info("###################################################################");
-		LOGGER.info(NEW_LINE + NEW_LINE + sb.toString() + NEW_LINE + NEW_LINE);
+		LOGGER.info(Constants.LINE_SEPARATOR + Constants.LINE_SEPARATOR
+				+ sb.toString() + Constants.LINE_SEPARATOR
+				+ Constants.LINE_SEPARATOR);
 		LOGGER.info("###################################################################");
 		// 将字符串转换成2进制流
 		InputStream is = null;
@@ -224,7 +238,7 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			List<MybatisBean> myList = new ArrayList<MybatisBean>();
 			for (String s : tables) {
 				s = getTableName(s);
-				String temp = getObjectName(s);
+				String temp = getObjectName(s, tables);
 				String beanId = temp.substring(0, 1).toLowerCase()
 						+ temp.substring(1) + "Mapper";
 				MybatisBean mybatisBean = new MybatisBean();
@@ -258,7 +272,7 @@ public class MybatisCreaterImpl implements MybatisCreater {
 	}
 
 	private String getTableString(final DatabaseEnum dbEnum,
-			final Database database, final String tableName) {
+			final Database database, final String tableName, String... tables) {
 		final String name = getTableName(tableName);
 		final ColumnResult result = database.getColumns(name);
 		final StringBuffer buf = new StringBuffer(300);
@@ -267,14 +281,14 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		buf.append(name);
 		buf.append("\" ");
 		buf.append("domainObjectName=\"");
-		buf.append(getObjectName(name));
+		buf.append(getObjectName(name, tables));
 		buf.append("\" ");
 		buf.append("escapeWildcards=\"true\" ");
 		buf.append("enableSelectByExample=\"false\" ");
 		buf.append("enableDeleteByExample=\"false\" ");
 		buf.append("enableCountByExample=\"false\" ");
 		buf.append("enableUpdateByExample=\"false\">");
-		buf.append(NEW_LINE);
+		buf.append(Constants.LINE_SEPARATOR);
 
 		final List<String> list = result.getAutoIncrementPrimaryKeys();
 		for (String key : list) {
@@ -285,19 +299,31 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			buf.append(dbEnum.getSqlStatement());
 			buf.append("\" ");
 			buf.append("identity=\"true\" />");
-			buf.append(NEW_LINE);
+			buf.append(Constants.LINE_SEPARATOR);
 		}
 		buf.append("    </table>");
-		buf.append(NEW_LINE);
-		buf.append(NEW_LINE);
+		buf.append(Constants.LINE_SEPARATOR);
+		buf.append(Constants.LINE_SEPARATOR);
 		return buf.toString();
 	}
 
-	private String getObjectName(final String table) {
-		if (null==table||"".equals(table.trim())) {
+	private String getObjectName(final String table, final String... tables) {
+		if (null == table || "".equals(table.trim())) {
 			return null;
 		}
 		String tableName = table;
+		String prefix = config.getTablePrefix();
+		if (StringUtils.isNotBlank(prefix)
+				&& tableName.toLowerCase().startsWith(prefix)) {
+			String temp = tableName.substring(prefix.length()).trim();
+			if (temp.startsWith("_")) {
+				temp = temp.substring(1);
+			}
+			if (!isTableExist(temp, tables)) {
+				tableName = temp;
+			}
+		}
+
 		int index = tableName.indexOf(" ");
 		while (index != -1) {
 			if (index + 1 >= tableName.length()
@@ -341,5 +367,17 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			name = name.substring(1, name.length() - 1);
 		}
 		return name;
+	}
+
+	private boolean isTableExist(String table, String... tables) {
+		if (null == tables || tables.length == 0) {
+			return false;
+		}
+		for (String s : tables) {
+			if (s.equals(table)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

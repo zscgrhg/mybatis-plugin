@@ -46,7 +46,7 @@ public class HsqldbDatabase extends AbstractDatabase {
 		if (null != name) {
 			name = name.toLowerCase();
 		}
-		return "[" + name + "]";
+		return name;
 	}
 
 	@Override
