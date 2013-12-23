@@ -1,4 +1,4 @@
-Mybatis Generator Plugin Extension
+Mybatis Generator Plugin
 ==============
 ##1. Maven repository
 
@@ -10,7 +10,12 @@ Mybatis Generator Plugin Extension
 </dependency>
 ```
 
-##2. Generator Configuration Sample
+##2. Plugin Activity Diagram
+
+![Mybatis Generator Plugin Activity Diagram](http://img.tqlab.com/mybatis-plugin/mybatis-gernrator-plugin-activity-diagram.png)
+
+
+##3. Plugin Configuration Sample
 
 ```
 	<build>
@@ -72,7 +77,7 @@ properties|extra config||false
 
 
 
-##3. Sql Template File Sample
+##4. Sql Template File Sample
 
 
 <pre>
@@ -172,7 +177,7 @@ properties|extra config||false
 </code>
 </pre>
 
-##4. Change log
+##5. Change log
 ###v 1.0.2
 1. bugfix hsqldb sql
 2. add mysql support
