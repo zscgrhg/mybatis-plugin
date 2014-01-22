@@ -52,9 +52,6 @@ public class MySQLDatabase extends AbstractDatabase {
 	protected String getTableName(final ResultSet resultSet)
 			throws SQLException {
 		String name = (String) resultSet.getObject(1);
-		if (null != name) {
-			name = name.toLowerCase();
-		}
 		return name;
 	}
 

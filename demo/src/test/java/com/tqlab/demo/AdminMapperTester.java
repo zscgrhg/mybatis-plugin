@@ -30,5 +30,11 @@ public class AdminMapperTester {
 		key.setId(1);
 		Admin admin = adminMapper.selectByPrimaryKey(key);
 		Assert.assertNotNull(admin);
+		
+		admin = new Admin();
+		admin.setName("a");
+		admin.setPwd("b");
+		adminMapper.insertSelective(admin);
+		System.out.println(admin.getId());
 	}
 }
