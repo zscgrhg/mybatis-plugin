@@ -88,4 +88,56 @@
 			]]>
 		</sql>
 	</operation>
+
+	<operation id="searchByfirstname" many="true">
+		<params>
+			<param>#{firstname,jdbcType=VARCHAR}</param>
+		</params>
+		<sql>
+			<![CDATA[
+				<script>
+				<bind name="pattern" value="'%' + firstname + '%'" />
+				select * from star where firstname like #{pattern} and id = #{id};
+				</script>
+			]]>
+		</sql>
+	</operation>
+
+	<operation id="update">
+		<params>
+			<param>#{firstname,jdbcType=VARCHAR}</param>
+			<param>#{lastname,jdbcType=VARCHAR}</param>
+			<param>#{id,jdbcType=INTEGER}</param>
+		</params>
+		<sql>
+		<![CDATA[
+		<script>
+		  update star
+		    <set>
+		      <if test="firstname!= null">firstname=#{firstname},</if>
+		      <if test="lastname!= null">lastname=#{lastname},</if>
+		    </set>
+		  where id=#{id}
+		</script>
+		]]>
+		</sql>
+	</operation>
+
+	<operation id="update2">
+		<params>
+			<param>#{parameter,jdbcType=JAVA_OBJECT}</param>
+		</params>
+		<sql>
+		<![CDATA[
+		<script>
+		  update star
+		    <set>
+		      <if test="firstname!= null">firstname=#{firstname},</if>
+		      <if test="lastname!= null">lastname=#{lastname},</if>
+		    </set>
+		  where id=#{id}
+		</script>
+		]]>
+		</sql>
+	</operation>
 </table>

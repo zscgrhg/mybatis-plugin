@@ -5,7 +5,11 @@ package com.tqlab.plugin.mybatis.util;
 
 import static org.mybatis.generator.api.dom.OutputUtilities.javaIndent;
 
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.codehaus.plexus.util.StringUtils;
 import org.mybatis.generator.api.dom.java.Method;
@@ -15,6 +19,9 @@ import org.mybatis.generator.api.dom.java.Method;
  * 
  */
 public final class ScriptUtil {
+
+	private static final String BIND_REGEX = "(<bind)\\s*(name=\")[a-zA-Z0-9_]+(\")\\s*((value=\")([a-zA-Z'%-_+\\s])*(\")\\s*)(/>)";
+	private static final String NAME_REGEX = "(name=\")[a-zA-Z0-9_]+\"";
 
 	private ScriptUtil() {
 
@@ -84,8 +91,8 @@ public final class ScriptUtil {
 	 */
 	public static boolean hasScript(final String str) {
 		boolean result;
-		if (StringUtils.isBlank(str)) {
-			final String temp = str.toLowerCase(Locale.getDefault());
+		if (StringUtils.isNotBlank(str)) {
+			final String temp = str.toLowerCase(Locale.getDefault()).trim();
 			result = temp.startsWith(Constants.SCRIPT_START);
 		} else {
 			result = false;
@@ -93,4 +100,21 @@ public final class ScriptUtil {
 		return result;
 	}
 
+	public static Set<String> getBindNames(final String sql) {
+		Set<String> result = new HashSet<String>();
+		Pattern p = Pattern.compile(BIND_REGEX);
+		Matcher matcher = p.matcher(sql);
+		while (matcher.find()) {
+			String s = matcher.group();
+			Pattern p2 = Pattern.compile(NAME_REGEX);
+			Matcher matcher2 = p2.matcher(s);
+			if (matcher2.find()) {
+				String s2 = matcher2.group();
+				String name = s2.substring(s2.indexOf('"') + 1,
+						s2.lastIndexOf('"'));
+				result.add(name);
+			}
+		}
+		return result;
+	}
 }

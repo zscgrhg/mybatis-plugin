@@ -134,7 +134,7 @@
     </xsd:simpleType>
     <xsd:simpleType name="MapperParam">
         <xsd:restriction base="xsd:string">
-            <xsd:pattern value="#\{[A-Za-z_]+[a-zA-z0-9_]*\s*,\s*jdbcType=[A-Z]+\}"></xsd:pattern>
+            <xsd:pattern value="#\{[A-Za-z_]+[a-zA-z0-9_]*\s*,\s*jdbcType=[A-Z_]+\}"></xsd:pattern>
         </xsd:restriction>
     </xsd:simpleType>
     <xsd:simpleType name="Sql">

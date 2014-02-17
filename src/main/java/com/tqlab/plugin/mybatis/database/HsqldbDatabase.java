@@ -43,6 +43,9 @@ public class HsqldbDatabase extends AbstractDatabase {
 
 	protected String getTableName(ResultSet resultSet) throws SQLException {
 		String name = (String) resultSet.getObject("TABLE_NAME");
+		if (null != name) {
+			name = name.toLowerCase();
+		}
 		return name;
 	}
 

@@ -204,3 +204,5 @@ properties|extra config||false
 ###v1.0.6
 1. bugfix mysql table generate code error when name is uppercase.
 2. bugfix table generate code error when the column's type is BLOB,BINARY or VARBINARY.
+3. Add dynamic <script> for annotation supported.
+4. Add parameter of Object type supported.
