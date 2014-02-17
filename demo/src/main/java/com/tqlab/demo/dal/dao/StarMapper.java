@@ -259,5 +259,5 @@ public interface StarMapper {
         "update star  <set>  <if test=\"firstname!= null\">firstname=#{firstname},</if>  <if test=\"lastname!= null\">lastname=#{lastname},</if>  </set> where id=#{id}"    
         ,"</script>"
     })
-    int update2( Object parameter);
+    int update2(Object obj);
 }

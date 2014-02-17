@@ -388,9 +388,9 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		if (!type.getFullyQualifiedName().equals(
 				FullyQualifiedJavaType.getObjectInstance()
 						.getFullyQualifiedName())) {
-			return new Parameter(type, name, "@Param(\"" + name + "\")");
+			return new MybatisParameter(type, name, "@Param(\"" + name + "\")");
 		} else {
-			return new Parameter(type, name, "");
+			return new MybatisParameter(type, name, null);
 		}
 	}
 

@@ -124,9 +124,6 @@
 	</operation>
 
 	<operation id="update2">
-		<params>
-			<param>#{parameter,jdbcType=JAVA_OBJECT}</param>
-		</params>
 		<sql>
 		<![CDATA[
 		<script>
