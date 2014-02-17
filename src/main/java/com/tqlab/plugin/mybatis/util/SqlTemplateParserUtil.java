@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.Types;
 import java.util.List;
@@ -477,10 +478,9 @@ public final class SqlTemplateParserUtil {
 		case Types.BIGINT: {
 			return new FullyQualifiedJavaType(Long.class.getName());
 		}
-		case Types.CHAR: {
-			return new FullyQualifiedJavaType(Character.class.getName());
+		case Types.DECIMAL: {
+			return new FullyQualifiedJavaType(BigDecimal.class.getName());
 		}
-		case Types.DECIMAL:
 		case Types.NUMERIC:
 		case Types.DOUBLE: {
 			return new FullyQualifiedJavaType(Double.class.getName());
@@ -488,11 +488,11 @@ public final class SqlTemplateParserUtil {
 		case Types.FLOAT: {
 			return new FullyQualifiedJavaType(Float.class.getName());
 		}
+		case Types.CHAR:
 		case Types.VARCHAR:
 		case Types.NVARCHAR:
 		case Types.LONGVARCHAR:
-		case Types.LONGNVARCHAR:
-		case Types.BLOB: {
+		case Types.LONGNVARCHAR: {
 			return FullyQualifiedJavaType.getStringInstance();
 		}
 		case Types.BIT:
@@ -506,6 +506,11 @@ public final class SqlTemplateParserUtil {
 		}
 		case Types.ARRAY: {
 			return new FullyQualifiedJavaType(List.class.getName());
+		}
+		case Types.BINARY:
+		case Types.VARBINARY:
+		case Types.BLOB: {
+			return new FullyQualifiedJavaType("byte[]");
 		}
 		case Types.JAVA_OBJECT:
 		default: {

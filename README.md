@@ -200,3 +200,7 @@ properties|extra config||false
 5. Add tablePrefix config support.
 6. Add auto delete ..*.dao /..*.dataobject package files when set overwrite is ture.
 7. Delete unused code.
+
+###v1.0.6
+1. bugfix mysql table generate code error when name is uppercase.
+2. bugfix table generate code error when the column's type is BLOB,BINARY or VARBINARY.
