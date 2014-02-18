@@ -38,17 +38,19 @@ public class StarMapperTester {
 
 		List<Star> list = starMapper.selectWithPagination(10, 0);
 		Assert.assertTrue(list.size() > 0);
-
-		list = starMapper.searchByfirstname("o");
+		s.setFirstname("Felix");
+		s.setId(1);
+		list = starMapper.searchByfirstname(s);
 		Assert.assertTrue(list.size() > 0);
 	}
 
 	@Test
 	public void update() {
-		int i = starMapper.update("John", null, 1);
+		int i = starMapper.update("Felix1", null, 1);
 		Assert.assertTrue(i > 0);
 		Star star = new Star();
-		star.setFirstname("Simith");
+		star.setFirstname("Felix2");
+		star.setId(1);
 		i = starMapper.update2(star);
 		Assert.assertTrue(i > 0);
 	}

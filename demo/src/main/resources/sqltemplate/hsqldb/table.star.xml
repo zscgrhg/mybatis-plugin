@@ -91,13 +91,13 @@
 
 	<operation id="searchByfirstname" many="true">
 		<params>
-			<param>#{firstname,jdbcType=VARCHAR}</param>
+			<param>#{obj,jdbcType=JAVA_OBJECT}</param>
 		</params>
 		<sql>
 			<![CDATA[
 				<script>
-				<bind name="pattern" value="'%' + firstname + '%'" />
-				select * from star where firstname like #{pattern} and id = #{id};
+				<bind name="pattern" value="'%' + obj.firstname + '%'" />
+				select * from star where firstname like #{pattern} and id = #{obj.id};
 				</script>
 			]]>
 		</sql>
