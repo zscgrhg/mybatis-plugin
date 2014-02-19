@@ -36,6 +36,7 @@ import org.mybatis.generator.codegen.mybatis3.javamapper.elements.AbstractJavaMa
 import com.tqlab.plugin.mybatis.util.CommonAnnotationUtil;
 import com.tqlab.plugin.mybatis.util.ResultAnnotationUtil;
 import com.tqlab.plugin.mybatis.util.SelectAnnotationUtil;
+import com.tqlab.plugin.mybatis.util.SqlTemplateParserUtil;
 
 /**
  * @author John Lee
@@ -85,11 +86,17 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 	private void addAnnotatedResults(final Interface interfaze,
 			final Method method, final DbSelectResult result,
 			final Select select) {
-		if (null != result) {
+		if (null != result
+				&& ((null != result.getColumns() && result.getColumns().size() > 0) || (isBasicType(result)))) {
 			this.addAnnotatedResults(interfaze, method, result);
 		} else {
 			this.addAnnotatedResults(interfaze, method, select);
 		}
+	}
+
+	private boolean isBasicType(final DbSelectResult result) {
+		FullyQualifiedJavaType type = result.getType();
+		return SqlTemplateParserUtil.isBasicType(type.getFullyQualifiedName());
 	}
 
 	/**

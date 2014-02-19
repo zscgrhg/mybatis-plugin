@@ -35,6 +35,7 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.AllColumns;
+import net.sf.jsqlparser.statement.select.AllTableColumns;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectBody;
@@ -196,16 +197,23 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 						+ sql + "]", e);
 			}
 		} else {
-			String tempSql = sql.toLowerCase(Locale.getDefault());
-
-			if (tempSql.startsWith("update")) {
-				statement = new Update();
-			} else if (tempSql.startsWith("insert")) {
-				statement = new Insert();
-			} else if (tempSql.startsWith("delete")) {
-				statement = new Delete();
-			} else {
-				statement = new Select();
+			String tempSql = SqlUtil.filterXml(
+					sql.toLowerCase(Locale.getDefault()), "");
+			tempSql = SqlUtil.filterSql(tempSql).trim();
+			try {
+				statement = CCJSqlParserUtil.parse(tempSql);
+			} catch (Throwable e) {
+				//
+			}
+			// TODO Use mybatis parser
+			if (null == statement) {
+				if (tempSql.startsWith("update")) {
+					statement = new Update();
+				} else if (tempSql.startsWith("delete")) {
+					statement = new Delete();
+				} else if (tempSql.startsWith("insert")) {
+					statement = new Insert();
+				}
 			}
 		}
 		return statement;
@@ -291,6 +299,14 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				if (item instanceof AllColumns) {
 					hasSelectedBLOB = true;
 					break;
+				} else if (item instanceof AllTableColumns) {
+					AllTableColumns aItem = (AllTableColumns) item;
+					String tableName = introspectedTable
+							.getAliasedFullyQualifiedTableNameAtRuntime();
+					if (aItem.getTable().getName().equals(tableName)) {
+						hasSelectedBLOB = true;
+						break;
+					}
 				} else if (item instanceof SelectExpressionItem) {
 					SelectExpressionItem eItem = (SelectExpressionItem) item;
 					Expression expression = eItem.getExpression();

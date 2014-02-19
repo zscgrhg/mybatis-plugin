@@ -20,7 +20,7 @@
 		</sql>
 	</operation>
 
-	<operation id="count" resultType="java.lang.Integer">
+	<operation id="count" many="false" resultType="int">
 		<sql>
 			<![CDATA[
 			select count(*) from star;
@@ -28,7 +28,7 @@
 		</sql>
 	</operation>
 
-	<operation id="sum" resultType="java.lang.Integer">
+	<operation id="sum" many="false"  resultType="java.lang.Integer">
 		<sql>
 			<![CDATA[
 			select sum(id) from star;
@@ -96,8 +96,8 @@
 		<sql>
 			<![CDATA[
 				<script>
-				<bind name="pattern" value="'%' + obj.firstname + '%'" />
-				select * from star where firstname like #{pattern} and id = #{obj.id};
+				<bind name="pattern" value="'%' + firstname + '%'" />
+				select * from star where firstname like #{pattern} and id = #{id};
 				</script>
 			]]>
 		</sql>

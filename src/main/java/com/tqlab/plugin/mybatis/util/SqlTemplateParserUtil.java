@@ -365,17 +365,33 @@ public final class SqlTemplateParserUtil {
 		}
 	}
 
-	private static boolean isBasicType(String resultType) {
+	public static boolean isBasicType(String resultType) {
 		return "java.lang.Integer".equals(resultType)
 				|| "Integer".equalsIgnoreCase(resultType)
+				|| "int".equalsIgnoreCase(resultType)
+				|| "java.lang.Short".equals(resultType)
+				|| "Short".equalsIgnoreCase(resultType)
+				|| "short".equalsIgnoreCase(resultType)
+				|| "java.lang.Char".equals(resultType)
+				|| "Char".equalsIgnoreCase(resultType)
+				|| "char".equalsIgnoreCase(resultType)
+				|| "java.lang.Byte".equals(resultType)
+				|| "Byte".equalsIgnoreCase(resultType)
+				|| "byte".equalsIgnoreCase(resultType)
 				|| "java.lang.Long".equals(resultType)
 				|| "Long".equalsIgnoreCase(resultType)
+				|| "long".equalsIgnoreCase(resultType)
 				|| "java.lang.Float".equals(resultType)
 				|| "Float".equalsIgnoreCase(resultType)
+				|| "float".equalsIgnoreCase(resultType)
 				|| "java.lang.Double".equals(resultType)
 				|| "Double".equalsIgnoreCase(resultType)
+				|| "double".equalsIgnoreCase(resultType)
 				|| "java.lang.Boolean".equals(resultType)
-				|| "Boolean".equalsIgnoreCase(resultType);
+				|| "Boolean".equalsIgnoreCase(resultType)
+				|| "boolean".equalsIgnoreCase(resultType)
+				|| "java.lang.String".equals(resultType)
+				|| "String".equalsIgnoreCase(resultType);
 	}
 
 	private static void processProperty(final TopLevelClass topLevelClass,
