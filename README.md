@@ -208,3 +208,7 @@ More sample: [https://github.com/tqlab/mybatis-plugin/blob/master/demo/src/main/
 2. bugfix table generate code error when the column's type is BLOB,BINARY or VARBINARY.
 3. Add dynamic script for annotation supported.
 4. Add parameter of Object type supported.
+
+###v1.0.7
+1. update jsqlparser version to 0.8.9
+2. Add mybatis Options annotation supported.

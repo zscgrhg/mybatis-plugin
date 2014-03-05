@@ -174,6 +174,28 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				importedTypes.add(p.getType());
 			}
 
+			if (null != operation.getOptions()
+					&& operation.getOptions().size() > 0) {
+				importedTypes.add(new FullyQualifiedJavaType(
+						"org.apache.ibatis.annotations.Options"));
+
+				StringBuilder buf = new StringBuilder();
+				for (DbOption option : operation.getOptions()) {
+					String name = option.getName();
+					buf.append(name);
+					buf.append("=");
+					if (name.equals("keyProperty") || name.equals("keyColumn")) {
+						buf.append("\"");
+						buf.append(option.getValue());
+						buf.append("\"");
+					} else {
+						buf.append(option.getValue());
+					}
+					buf.append(" ");
+				}
+				method.addAnnotation("@Options(" + buf.toString().trim() + ")");
+			}
+
 			generator.addMapperAnnotations(interfaze, method,
 					operation.getResult(), statement, hasScript, sql);
 			interfaze.addMethod(method);
@@ -193,8 +215,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			try {
 				statement = CCJSqlParserUtil.parse(SqlUtil.filterSql(sql));
 			} catch (Throwable e) {
-				throw new MybatisPluginException("Sql parser error. SQL ["
-						+ sql + "]", e);
+				//
 			}
 		} else {
 			String tempSql = SqlUtil.filterXml(
@@ -205,15 +226,19 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			} catch (Throwable e) {
 				//
 			}
-			// TODO Use mybatis parser
-			if (null == statement) {
-				if (tempSql.startsWith("update")) {
-					statement = new Update();
-				} else if (tempSql.startsWith("delete")) {
-					statement = new Delete();
-				} else if (tempSql.startsWith("insert")) {
-					statement = new Insert();
-				}
+		}
+
+		// TODO Use mybatis parser
+		if (null == statement) {
+			String tempSql = SqlUtil.filterXml(
+					sql.toLowerCase(Locale.getDefault()), "");
+			tempSql = SqlUtil.filterSql(tempSql).trim();
+			if (tempSql.startsWith("update")) {
+				statement = new Update();
+			} else if (tempSql.startsWith("delete")) {
+				statement = new Delete();
+			} else if (tempSql.startsWith("insert")) {
+				statement = new Insert();
 			}
 		}
 		return statement;
@@ -397,6 +422,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			result.add(getParameter(FullyQualifiedJavaType.getObjectInstance(),
 					"obj"));
 		}
+
 		return result;
 	}
 

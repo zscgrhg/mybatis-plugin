@@ -41,6 +41,7 @@ import org.mybatis.generator.internal.types.JdbcTypeNameTranslator;
 import org.xml.sax.SAXException;
 
 import com.tqlab.plugin.mybatis.generator.DbColumn;
+import com.tqlab.plugin.mybatis.generator.DbOption;
 import com.tqlab.plugin.mybatis.generator.DbParam;
 import com.tqlab.plugin.mybatis.generator.DbSelectResult;
 import com.tqlab.plugin.mybatis.generator.DbTable;
@@ -58,11 +59,14 @@ public final class SqlTemplateParserUtil {
 
 	private static final String TABLE = "table";
 	private static final String NAME = "name";
+	private static final String VALUE = "value";
 	private static final String OPERATION = "operation";
 	private static final String ID = "id";
 	private static final String MANY = "many";
 	private static final String RESULT_TYPE = "resultType";
 	private static final String RESULT = "result";
+	private static final String OPTIONS = "options";
+	private static final String OPTION = "option";
 	private static final String PARAMS = "params";
 	private static final String PARAM = "param";
 	private static final String SQL = "sql";
@@ -198,7 +202,9 @@ public final class SqlTemplateParserUtil {
 		String sql = e.elementText(SQL);
 		Element result = e.element(RESULT);
 		Element comment = e.element(COMMNET);
+		Element options = e.element(OPTIONS);
 		Element params = e.element(PARAMS);
+
 		if (null == id || null == sql) {
 			return null;
 		}
@@ -239,6 +245,17 @@ public final class SqlTemplateParserUtil {
 				DbSelectResult dbSelectResult = new DbSelectResult();
 				dbSelectResult.setType(fullyQualifiedJavaType);
 				operation.setResult(dbSelectResult);
+			}
+		}
+
+		if (null != options && null != options.elements(OPTION)) {
+			for (Element el : (List<Element>) options.elements(OPTION)) {
+				String name = el.attributeValue(NAME);
+				String value = el.attributeValue(VALUE);
+				DbOption dbOption = new DbOption();
+				dbOption.setName(name);
+				dbOption.setValue(value);
+				operation.addOption(dbOption);
 			}
 		}
 
