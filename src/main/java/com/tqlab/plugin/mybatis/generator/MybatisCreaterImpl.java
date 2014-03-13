@@ -25,6 +25,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
@@ -312,6 +313,16 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			return null;
 		}
 		String tableName = table;
+		for (Iterator<Map.Entry<String, String>> i = config.getTableAlias()
+				.entrySet().iterator(); i.hasNext();) {
+			Map.Entry<String, String> e = i.next();
+			if (e.getValue().equals(table)) {
+				// Use Alias
+				tableName = e.getKey();
+				break;
+			}
+		}
+
 		String prefix = config.getTablePrefix();
 		if (StringUtils.isNotBlank(prefix)
 				&& tableName.toLowerCase().startsWith(prefix)) {

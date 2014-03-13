@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -149,9 +150,16 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	private String generateOsgiConfig;
 
 	/**
+	 * Tables alias config
+	 * 
+	 */
+	@Parameter(property = "mybatis.generator.tableAlias", required = false)
+	private Map<String, String> tableAlias;
+
+	/**
 	 * Extra config.
 	 */
-	@Parameter(property = "mybatis.generator.properties")
+	@Parameter(property = "mybatis.generator.properties", required = false)
 	private Properties properties;
 
 	private String getJDBCPassword() {
@@ -202,7 +210,13 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 			while (st.hasMoreTokens()) {
 				String s = st.nextToken().trim();
 				if (s.length() > 0) {
-					fullyqualifiedTables.add(s);
+					String name = (tableAlias == null ? null
+							: (String) tableAlias.get(s));
+					if (StringUtils.isNotBlank(name)) {
+						fullyqualifiedTables.add(name);
+					} else {
+						fullyqualifiedTables.add(s);
+					}
 				}
 			}
 		}
@@ -379,6 +393,10 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		if (StringUtils.isNotBlank(tablePrefix)) {
 			properties.put(Constants.TABLE_PREFIX, tablePrefix);
 		}
+		if (null != tableAlias) {
+			properties.put(Constants.TABLE_ALIAS, tableAlias);
+		}
+
 		if (null != properties) {
 			properties.putAll(this.properties);
 		}

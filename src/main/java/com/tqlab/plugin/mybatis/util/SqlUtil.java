@@ -15,6 +15,14 @@ public final class SqlUtil {
 	private static final String XML_PATTERN = "<[^>]*>";
 
 	/**
+	 * <pre>
+	 * <foreach item="item" index="index" collection="list" open="(" separator="," close=")"> #{item} 
+	 * </ foreach>
+	 * </pre>
+	 */
+	private static final String FOREACH_PATTERN = "<([Ff][Oo][Rr][Ee][Aa][Cc][Hh])([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*>([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*</([Ff][Oo][Rr][Ee][Aa][Cc][Hh])>";
+
+	/**
 	 * Such as #{key,jdbcType=BIGINT}
 	 */
 	private static final String PARAM_PATTERN = "#\\{[a-zA-Z,=\\-\\_\\s]+\\}";
@@ -58,7 +66,8 @@ public final class SqlUtil {
 	 * @return
 	 */
 	public static String filterXml(final String str, final String replacement) {
-		return str.replaceAll(XML_PATTERN, replacement);
+		String s = str.replaceAll(FOREACH_PATTERN, "('')");
+		return s.replaceAll(XML_PATTERN, replacement);
 	}
 
 	/**

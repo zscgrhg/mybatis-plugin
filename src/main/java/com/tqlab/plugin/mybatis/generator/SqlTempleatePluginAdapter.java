@@ -57,6 +57,7 @@ import org.mybatis.generator.api.dom.java.Parameter;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.mybatis.generator.config.Context;
 
+import com.google.common.base.Splitter;
 import com.tqlab.plugin.mybatis.MybatisPluginException;
 import com.tqlab.plugin.mybatis.generator.config.Config;
 import com.tqlab.plugin.mybatis.util.Constants;
@@ -103,7 +104,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				DbTable dbTable = SqlTemplateParserUtil.parseDbTable(context,
 						file, maps);
 				if (null != dbTable) {
-					map.put(dbTable.getName(), dbTable);
+					map.put(dbTable.getName().toLowerCase(), dbTable);
 				}
 			}
 		}
@@ -124,7 +125,28 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 		final String tableName = introspectedTable
 				.getAliasedFullyQualifiedTableNameAtRuntime();
-		final DbTable dbTable = this.map.get(tableName.toLowerCase());
+		DbTable dbTable = this.map.get(tableName.toLowerCase());
+
+		String s = (String) properties.get(Constants.TABLE_ALIAS);
+		if (null == dbTable && null != s && s.trim().length() >= 5) {
+
+			//
+			Map<String, String> tableAlias = Splitter.on(',')
+					.withKeyValueSeparator('=')
+					.split(s.substring(1, s.length() - 1));
+			// Find by Alias
+			if (null == dbTable && null != tableAlias) {
+				for (Iterator<Map.Entry<String, String>> i = tableAlias
+						.entrySet().iterator(); i.hasNext();) {
+					Map.Entry<String, String> e = i.next();
+					if (e.getValue().equalsIgnoreCase(tableName)) {
+						dbTable = this.map.get(e.getKey().toLowerCase());
+						break;
+					}
+				}
+
+			}
+		}
 		if (null == dbTable) {
 			return true;
 		}
@@ -225,6 +247,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				statement = CCJSqlParserUtil.parse(tempSql);
 			} catch (Throwable e) {
 				//
+				e.printStackTrace();
 			}
 		}
 
@@ -376,7 +399,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		List<Parameter> result = new ArrayList<Parameter>();
 		Set<String> bindNames = new HashSet<String>();
 		for (DbParam param : params) {
-			result.add(getParameter(param.getType(), param.getObjectName()));
+			result.add(getParameter(param.getType(), param.getObjectName(),
+					true));
 			bindNames.add(param.getObjectName());
 		}
 		if (hasScript) {
@@ -398,7 +422,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				type = SqlTemplateParserUtil
 						.getFullyQualifiedJavaType(jdbcTypeName);
 			}
-			result.add(getParameter(type, s[0]));
+			result.add(getParameter(type, s[0], true));
 		}
 
 		if (hasScript) {
@@ -413,23 +437,23 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 				if (!found) {
 					result.add(getParameter(
-							FullyQualifiedJavaType.getObjectInstance(), name));
+							FullyQualifiedJavaType.getObjectInstance(), name,
+							false));
 				}
 			}
 		}
 
 		if (list.size() > 0 && result.size() == 0) {
 			result.add(getParameter(FullyQualifiedJavaType.getObjectInstance(),
-					"obj"));
+					"obj", false));
 		}
 
 		return result;
 	}
 
-	private Parameter getParameter(FullyQualifiedJavaType type, String name) {
-		if (!type.getFullyQualifiedName().equals(
-				FullyQualifiedJavaType.getObjectInstance()
-						.getFullyQualifiedName())) {
+	private Parameter getParameter(FullyQualifiedJavaType type, String name,
+			boolean isParam) {
+		if (isParam) {
 			return new MybatisParameter(type, name, "@Param(\"" + name + "\")");
 		} else {
 			return new MybatisParameter(type, name, null);

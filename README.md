@@ -212,3 +212,4 @@ More sample: [https://github.com/tqlab/mybatis-plugin/blob/master/demo/src/main/
 ###v1.0.7
 1. update jsqlparser version to 0.8.9
 2. Add mybatis Options annotation supported.
+3. Add alias name config supported.

@@ -5,7 +5,9 @@ package com.tqlab.plugin.mybatis.generator.config;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.tqlab.plugin.mybatis.util.Constants;
@@ -27,7 +29,11 @@ public class Config {
 		Enumeration<String> e = (Enumeration<String>) props.propertyNames();
 		while (e.hasMoreElements()) {
 			String key = e.nextElement();
-			items.add(CacheConfigItem.valueOf(key, props.getProperty(key)));
+			String obj = props.getProperty(key);
+			if (obj == null) {
+				continue;
+			}
+			items.add(CacheConfigItem.valueOf(key, obj));
 		}
 	}
 
@@ -51,5 +57,15 @@ public class Config {
 			prefix = prefix.trim().toLowerCase();
 		}
 		return prefix;
+	}
+
+	@SuppressWarnings("unchecked")
+	public Map<String, String> getTableAlias() {
+		Map<String, String> map = (Map<String, String>) props
+				.get(Constants.TABLE_ALIAS);
+		if (null == map) {
+			map = new HashMap<String, String>();
+		}
+		return map;
 	}
 }
