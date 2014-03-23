@@ -44,6 +44,10 @@ public final class SqlUtil {
 	private static final String LT = "&lt;";
 	private static final String AMP = "&amp;";
 
+	private static final String[] DYNAMIC_KEYS = { "<if", "<choose", "<when",
+			"<otherwise", "<where", "<trim", "<set", "<foreach", "<bind",
+			"<selectKey", "</" };
+
 	private SqlUtil() {
 
 	}
@@ -112,9 +116,43 @@ public final class SqlUtil {
 	public static String pdataFilter(final String sql, boolean hasScript) {
 		String s = sql.trim();
 		if (hasScript) {
-			s = s.replace("<", LT);
 			s = s.replace("&", AMP);
+			StringBuilder buf = new StringBuilder();
+			for (int i = 0; i < s.length(); i++) {
+				char c = s.charAt(i);
+				if (c == '<') {
+					if (i == s.length() - 1) {
+						buf.append(LT);
+					} else {
+						String sTmp = s.substring(i);
+						if (isDynamicKeys(sTmp)) {
+							int index = sTmp.indexOf('>');
+							if (index > 0) {
+								i += index;
+								buf.append(sTmp.substring(0, index + 1));
+							} else {
+								buf.append(sTmp);
+								break;
+							}
+						} else {
+							buf.append(LT);
+						}
+					}
+				} else {
+					buf.append(c);
+				}
+			}
+			s = buf.toString();
 		}
 		return s;
+	}
+
+	private static boolean isDynamicKeys(String s) {
+		for (String key : DYNAMIC_KEYS) {
+			if (s.startsWith(key)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
