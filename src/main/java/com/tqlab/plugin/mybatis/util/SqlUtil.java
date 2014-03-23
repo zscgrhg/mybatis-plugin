@@ -41,6 +41,9 @@ public final class SqlUtil {
 			+ ")\\s*(,|([Oo][Ff][Ff][Ss][Ee][Tt]))\\s*)?(\\s*(\\d+|"
 			+ PARAM_PATTERN + "))";
 
+	private static final String LT = "&lt;";
+	private static final String AMP = "&amp;";
+
 	private SqlUtil() {
 
 	}
@@ -91,12 +94,17 @@ public final class SqlUtil {
 	 * @return
 	 */
 	public static String trimSql(final String sql) {
+		final boolean hasScript = ScriptUtil.hasScript(sql);
 		String s = sql.trim();
 		s = ScriptUtil.trimScript(s);
 		s = SqlUtil.filterBlank(s, " ");
 		s = s.replace("\"", "\\\"");
 		s = s.replace("  ", " ");
 		s = s.trim();
+		if (hasScript) {
+			s = s.replace("<", LT);
+			s = s.replace("&", AMP);
+		}
 		return s;
 	}
 }

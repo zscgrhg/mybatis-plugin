@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.mybatis.generator.internal.util.StringUtility;
 
+import com.google.common.base.Splitter;
 import com.tqlab.plugin.mybatis.database.Database;
 import com.tqlab.plugin.mybatis.database.DatabaseEnum;
 import com.tqlab.plugin.mybatis.database.DatabaseFactoryImpl;
@@ -151,15 +153,14 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 
 	/**
 	 * Tables alias config
-	 * 
 	 */
-	@Parameter(property = "mybatis.generator.tableAlias", required = false)
-	private Map<String, String> tableAlias;
+	@Parameter
+	private String tableAlias;
 
 	/**
 	 * Extra config.
 	 */
-	@Parameter(property = "mybatis.generator.properties", required = false)
+	@Parameter
 	private Properties properties;
 
 	private String getJDBCPassword() {
@@ -198,6 +199,9 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		// load log4j
 		loadLog4j();
 
+		getLog().info("context: " + this.getPluginContext());
+		getLog().info("tableAlias: " + tableAlias);
+
 		Database databaseObj = new DatabaseFactoryImpl().getDatabase(
 				DatabaseEnum.getDatabaseEnum(dbName), database, getJDBCUrl(),
 				jdbcUserId, getJDBCPassword());
@@ -210,8 +214,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 			while (st.hasMoreTokens()) {
 				String s = st.nextToken().trim();
 				if (s.length() > 0) {
-					String name = (tableAlias == null ? null
-							: (String) tableAlias.get(s));
+					String name = getTableAlias().get(s);
 					if (StringUtils.isNotBlank(name)) {
 						fullyqualifiedTables.add(name);
 					} else {
@@ -393,13 +396,25 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		if (StringUtils.isNotBlank(tablePrefix)) {
 			properties.put(Constants.TABLE_PREFIX, tablePrefix);
 		}
-		if (null != tableAlias) {
-			properties.put(Constants.TABLE_ALIAS, tableAlias);
+		if (null != this.tableAlias) {
+			properties.put(Constants.TABLE_ALIAS, getTableAlias());
 		}
 
-		if (null != properties) {
+		if (null != this.properties) {
 			properties.putAll(this.properties);
 		}
 		return properties;
+	}
+
+	private Map<String, String> getTableAlias() {
+		if (StringUtils.isBlank(tableAlias) || tableAlias.length() < 5) {
+			return new HashMap<String, String>();
+		}
+		Map<String, String> tableAlias = Splitter
+				.on(',')
+				.withKeyValueSeparator('=')
+				.split(this.tableAlias.substring(1,
+						this.tableAlias.length() - 1));
+		return tableAlias;
 	}
 }

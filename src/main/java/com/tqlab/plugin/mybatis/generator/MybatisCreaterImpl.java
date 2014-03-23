@@ -274,6 +274,9 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 	private String getTableString(final DatabaseEnum dbEnum,
 			final Database database, final String tableName, String... tables) {
+
+		LOGGER.info("getTableString >>> " + tableName);
+
 		final String name = getTableName(tableName);
 		final ColumnResult result = database.getColumns(name);
 		final StringBuffer buf = new StringBuffer(300);
