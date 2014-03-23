@@ -94,13 +94,23 @@ public final class SqlUtil {
 	 * @return
 	 */
 	public static String trimSql(final String sql) {
-		final boolean hasScript = ScriptUtil.hasScript(sql);
 		String s = sql.trim();
 		s = ScriptUtil.trimScript(s);
 		s = SqlUtil.filterBlank(s, " ");
 		s = s.replace("\"", "\\\"");
 		s = s.replace("  ", " ");
 		s = s.trim();
+		return s;
+	}
+
+	/**
+	 * 
+	 * @param sql
+	 * @param hasScript
+	 * @return
+	 */
+	public static String pdataFilter(final String sql, boolean hasScript) {
+		String s = sql.trim();
 		if (hasScript) {
 			s = s.replace("<", LT);
 			s = s.replace("&", AMP);

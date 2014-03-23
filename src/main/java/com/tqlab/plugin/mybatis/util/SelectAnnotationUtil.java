@@ -70,7 +70,7 @@ public final class SelectAnnotationUtil {
 
 		javaIndent(buf, 1);
 		buf.append(Constants.QUOTE);
-		buf.append(sql); //$NON-NLS-1$
+		buf.append(SqlUtil.pdataFilter(sql, hasScript)); //$NON-NLS-1$
 		buf.append(Constants.QUOTE);
 
 		method.addAnnotation(buf.toString());

@@ -40,7 +40,7 @@ public final class CommonAnnotationUtil {
 		ScriptUtil.addScriptStart(hasScript, method);
 		javaIndent(buf, 1);
 		buf.append((char) '"');
-		buf.append(sql.replace("\n", " "));
+		buf.append(SqlUtil.pdataFilter(sql.replace("\n", " "), hasScript));
 		buf.append((char) '"');
 		javaIndent(buf, 1);
 		method.addAnnotation(buf.toString());
