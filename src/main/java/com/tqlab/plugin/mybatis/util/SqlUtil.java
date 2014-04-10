@@ -22,6 +22,7 @@ public final class SqlUtil {
 	 */
 	private static final String FOREACH_PATTERN = "<([Ff][Oo][Rr][Ee][Aa][Cc][Hh])([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*>([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*</([Ff][Oo][Rr][Ee][Aa][Cc][Hh])>";
 
+	private static final String SELECT_KEY_PATTERN = "<([sS][eE][lL][eE][cC][tT][kK][eE][yY])([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*>([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*</([sS][eE][lL][eE][cC][tT][kK][eE][yY])>";
 	/**
 	 * Such as #{key,jdbcType=BIGINT}
 	 */
@@ -74,6 +75,7 @@ public final class SqlUtil {
 	 */
 	public static String filterXml(final String str, final String replacement) {
 		String s = str.replaceAll(FOREACH_PATTERN, "('')");
+		s = s.replaceAll(SELECT_KEY_PATTERN, "");
 		return s.replaceAll(XML_PATTERN, replacement);
 	}
 

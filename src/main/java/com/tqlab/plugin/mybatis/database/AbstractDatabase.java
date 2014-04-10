@@ -24,7 +24,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -39,11 +42,10 @@ public abstract class AbstractDatabase implements Database {
 	private static final Logger LOGGER = Logger
 			.getLogger(AbstractDatabase.class);
 
-	private final transient String driverClass;
+	private String driverClass;
 	private final transient String database;
 	private final transient String url;
-	private final transient String user;
-	private final transient String password;
+	private final Properties properties;
 	/**
 	 * Database connection
 	 */
@@ -54,16 +56,29 @@ public abstract class AbstractDatabase implements Database {
 	 * @param driverClass
 	 * @param database
 	 * @param url
-	 * @param user
-	 * @param password
+	 * @param properties
 	 */
 	public AbstractDatabase(final String driverClass, final String database,
-			final String url, final String user, final String password) {
+			final String url, final Properties properties) {
 		this.driverClass = driverClass;
 		this.database = database;
 		this.url = url;
-		this.user = user;
-		this.password = password;
+		this.properties = properties;
+	}
+
+	/**
+	 * @return the driverClass
+	 */
+	public final String getDriverClass() {
+		return driverClass;
+	}
+
+	/**
+	 * @param driverClass
+	 *            the driverClass to set
+	 */
+	public final void setDriverClass(String driverClass) {
+		this.driverClass = driverClass;
 	}
 
 	/**
@@ -76,7 +91,7 @@ public abstract class AbstractDatabase implements Database {
 		try {
 			if (null == conn || conn.isClosed()) {
 				Class.forName(driverClass);
-				conn = DriverManager.getConnection(url, user, password);
+				conn = DriverManager.getConnection(url, properties);
 			}
 
 		} catch (ClassNotFoundException e) {
@@ -143,9 +158,9 @@ public abstract class AbstractDatabase implements Database {
 	}
 
 	@Override
-	public List<String> getTablesName() {
+	public Set<String> getTablesName() {
 
-		final List<String> list = new ArrayList<String>();
+		final Set<String> set = new HashSet<String>();
 
 		Statement stmt = null;
 		ResultSet res = null;
@@ -155,14 +170,14 @@ public abstract class AbstractDatabase implements Database {
 			res = stmt.executeQuery(getTablesQuerySql());
 			while (res.next()) {
 				//
-				list.add(getTableName(res));
+				set.add(getTableName(res));
 			}
 		} catch (SQLException e) {
 			LOGGER.error(e);
 		} finally {
 			releaseDbQuery(stmt, res);
 		}
-		return list;
+		return set;
 	}
 
 	private void releaseDbQuery(Statement stmt, ResultSet res) {

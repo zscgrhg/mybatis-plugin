@@ -16,6 +16,10 @@
  */
 package com.tqlab.plugin.mybatis.database;
 
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.tqlab.plugin.mybatis.MybatisPluginException;
 
 /**
@@ -26,17 +30,17 @@ public class DatabaseFactoryImpl implements DatabaseFactory {
 
 	@Override
 	public Database getDatabase(final DatabaseEnum databaseEnum,
-			final String database, final String url, final String user,
-			final String password) {
+			final String database, final String url,
+			final Properties properties, final String driver) {
 
-		Database result = null;
+		AbstractDatabase result = null;
 		switch (databaseEnum) {
 		case MYSQL: {
-			result = new MySQLDatabase(database, url, user, password);
+			result = new MySQLDatabase(database, url, properties);
 			break;
 		}
 		case HSQLDB: {
-			result = new HsqldbDatabase(database, url, user, password);
+			result = new HsqldbDatabase(database, url, properties);
 			break;
 		}
 		default: {
@@ -45,6 +49,10 @@ public class DatabaseFactoryImpl implements DatabaseFactory {
 		}
 		}
 		if (null != result) {
+			if (StringUtils.isNotBlank(driver)) {
+				result.setDriverClass(driver);
+			}
+
 			return result;
 		}
 		throw new MybatisPluginException("database " + databaseEnum.name()

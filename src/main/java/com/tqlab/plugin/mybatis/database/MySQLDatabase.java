@@ -18,6 +18,7 @@ package com.tqlab.plugin.mybatis.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * @author John Lee
@@ -35,13 +36,8 @@ public class MySQLDatabase extends AbstractDatabase {
 	 * @param password
 	 */
 	public MySQLDatabase(final String database, final String url,
-			final String user, final String password) {
-		super(DRIVER, database, url, user, password);
-	}
-
-	@Override
-	public String getDirverClass() {
-		return DRIVER;
+			final Properties properties) {
+		super(DRIVER, database, url, properties);
 	}
 
 	@Override

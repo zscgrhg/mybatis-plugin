@@ -22,9 +22,11 @@ package com.tqlab.plugin.mybatis.generator;
  */
 public class MybatisBean {
 
+	private static final String DEFAULT_SQL_SESSION_FACTORY = "sqlSessionFactory";
 	private String beanId;
 	private String beanName;
 	private String classPath;
+	private String sqlSessionFactory;
 
 	/**
 	 * @return the beanId
@@ -71,6 +73,24 @@ public class MybatisBean {
 		this.classPath = classPath;
 	}
 
+	/**
+	 * @return the sqlSessionFactory
+	 */
+	public final String getSqlSessionFactory() {
+		if (null == sqlSessionFactory) {
+			return DEFAULT_SQL_SESSION_FACTORY;
+		}
+		return sqlSessionFactory;
+	}
+
+	/**
+	 * @param sqlSessionFactory
+	 *            the sqlSessionFactory to set
+	 */
+	public final void setSqlSessionFactory(String sqlSessionFactory) {
+		this.sqlSessionFactory = sqlSessionFactory;
+	}
+
 	public String toString() {
 		StringBuffer buf = new StringBuffer("");
 		buf.append("\t<bean id=\"" + beanId
@@ -79,7 +99,8 @@ public class MybatisBean {
 		buf.append("\t\t<property name=\"mapperInterface\" value=\""
 				+ classPath + "\" />");
 		buf.append("\r\n");
-		buf.append("\t\t<property name=\"sqlSessionFactory\" ref=\"sqlSessionFactory\" />");
+		buf.append("\t\t<property name=\"sqlSessionFactory\" ref=\""
+				+ getSqlSessionFactory() + "\" />");
 		buf.append("\r\n");
 		buf.append("\t</bean>");
 		return buf.toString();

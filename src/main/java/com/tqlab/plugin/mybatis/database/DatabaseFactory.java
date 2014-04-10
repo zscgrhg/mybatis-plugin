@@ -16,6 +16,8 @@
  */
 package com.tqlab.plugin.mybatis.database;
 
+import java.util.Properties;
+
 /**
  * @author John Lee
  * 
@@ -27,10 +29,10 @@ public interface DatabaseFactory {
 	 * @param databaseEnum
 	 * @param database
 	 * @param url
-	 * @param user
-	 * @param password
+	 * @param properties
+	 * @param driver
 	 * @return
 	 */
 	Database getDatabase(DatabaseEnum databaseEnum, String database,
-			String url, String user, String password);
+			String url, final Properties properties, final String driver);
 }

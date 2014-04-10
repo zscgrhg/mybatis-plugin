@@ -77,6 +77,7 @@ public final class SqlTemplateParserUtil {
 	private static final String JAVA_TYPE = "javaType";
 	private static final String JAVA_PROPERTY = "javaProperty";
 	private static final String COLUMN = "column";
+	private static final String SQL_SESSION_FACTORY = "sqlSessionFactory";
 
 	private static final String MYBATIS_XSD_LOCAL = "/com/tqlab/plugin/mybatis/tqlab-mybatis-plugin.xsd";
 	private static final String MYBATIS_XSD_REMOTE = "http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd";
@@ -95,13 +96,13 @@ public final class SqlTemplateParserUtil {
 		}
 		// Check remote xsd file exit or not
 		InputStream is = null;
-		try {
-			URL url = new URL(MYBATIS_XSD_REMOTE);
-			is = url.openStream();
-		} catch (IOException e) {
-			is = null;
-			LOGGER.warn("Read file: " + MYBATIS_XSD_REMOTE + " error.");
-		}
+		// try {
+		// URL url = new URL(MYBATIS_XSD_REMOTE);
+		// is = url.openStream();
+		// } catch (IOException e) {
+		// is = null;
+		// LOGGER.warn("Read file: " + MYBATIS_XSD_REMOTE + " error.");
+		// }
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		if (null == is) {
 			SchemaFactory schemaFactory = SchemaFactory
@@ -125,11 +126,7 @@ public final class SqlTemplateParserUtil {
 		return reader;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static DbTable parseDbTable(Context context, File file,
-			Map<String, GeneratedJavaFile> maps) {
-
-		LOGGER.info("start parse file :	" + file);
+	public static DbTable parseDbTable(File file) {
 		Document document = null;
 		try {
 			SAXReader reader = getSAXReader();
@@ -154,7 +151,27 @@ public final class SqlTemplateParserUtil {
 		LOGGER.info("parse table :	" + name);
 
 		table.setName(name.toLowerCase());
+		table.setSqlSessionFactory(rootElement
+				.attributeValue(SQL_SESSION_FACTORY));
+		table.setRootElement(rootElement);
+		return table;
+	}
 
+	@SuppressWarnings("unchecked")
+	public static DbTable parseDbTable(Context context, File file,
+			Map<String, GeneratedJavaFile> maps) {
+
+		LOGGER.info("start parse file :	" + file);
+
+		DbTable table = parseDbTable(file);
+		Element rootElement = table.getRootElement();
+		String name = rootElement.attributeValue(NAME);
+
+		LOGGER.info("parse table :	" + name);
+
+		table.setName(name.toLowerCase());
+		table.setSqlSessionFactory(rootElement
+				.attributeValue(SQL_SESSION_FACTORY));
 		List<Element> list = rootElement.elements();
 		for (Element e : list) {
 			if (COLUMN.equalsIgnoreCase(e.getName())) {
@@ -483,6 +500,7 @@ public final class SqlTemplateParserUtil {
 			boolean markAsDoNotDelete) {
 		javaElement.addJavaDocLine(" *"); //$NON-NLS-1$
 		StringBuilder sb = new StringBuilder();
+		sb.append(" * ");
 		sb.append(MergeConstants.NEW_ELEMENT_TAG);
 		if (markAsDoNotDelete) {
 			sb.append(" do_not_delete_during_merge"); //$NON-NLS-1$

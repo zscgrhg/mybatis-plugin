@@ -19,6 +19,8 @@ package com.tqlab.plugin.mybatis.generator;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.dom4j.Element;
+
 /**
  * @author John Lee
  * 
@@ -26,10 +28,12 @@ import java.util.List;
 public class DbTable {
 
 	private String name;
+	private String sqlSessionFactory;
 	private List<DbColumn> columns = new ArrayList<DbColumn>();
 	private List<DbSelectResult> selectResults = new ArrayList<DbSelectResult>();
 	private List<DbTableOperation> operations = new ArrayList<DbTableOperation>();
-
+	private Element rootElement;
+	
 	/**
 	 * @return the name
 	 */
@@ -43,6 +47,21 @@ public class DbTable {
 	 */
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	/**
+	 * @return the sqlSessionFactory
+	 */
+	public final String getSqlSessionFactory() {
+		return sqlSessionFactory;
+	}
+
+	/**
+	 * @param sqlSessionFactory
+	 *            the sqlSessionFactory to set
+	 */
+	public final void setSqlSessionFactory(String sqlSessionFactory) {
+		this.sqlSessionFactory = sqlSessionFactory;
 	}
 
 	/**
@@ -88,6 +107,20 @@ public class DbTable {
 	 */
 	public final void setOperations(List<DbTableOperation> operations) {
 		this.operations = operations;
+	}
+
+	/**
+	 * @return the rootElement
+	 */
+	public final Element getRootElement() {
+		return rootElement;
+	}
+
+	/**
+	 * @param rootElement the rootElement to set
+	 */
+	public final void setRootElement(Element rootElement) {
+		this.rootElement = rootElement;
 	}
 
 }

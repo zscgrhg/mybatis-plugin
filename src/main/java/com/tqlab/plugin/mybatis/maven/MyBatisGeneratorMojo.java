@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
@@ -44,10 +45,12 @@ import com.google.common.base.Splitter;
 import com.tqlab.plugin.mybatis.database.Database;
 import com.tqlab.plugin.mybatis.database.DatabaseEnum;
 import com.tqlab.plugin.mybatis.database.DatabaseFactoryImpl;
+import com.tqlab.plugin.mybatis.generator.DbTable;
 import com.tqlab.plugin.mybatis.generator.MybatisBean;
 import com.tqlab.plugin.mybatis.generator.MybatisCreater;
 import com.tqlab.plugin.mybatis.generator.MybatisCreaterImpl;
 import com.tqlab.plugin.mybatis.util.Constants;
+import com.tqlab.plugin.mybatis.util.SqlTemplateParserUtil;
 
 /**
  * Goal which generates MyBatis/iBATIS artifacts.
@@ -84,6 +87,12 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	 */
 	@Parameter(property = "mybatis.generator.jdbcPassword")
 	private String jdbcPassword;
+
+	/**
+	 * JDBC driver to use
+	 */
+	@Parameter(property = "mybatis.generator.jdbcDriver")
+	private String jdbcDriver;
 
 	/**
 	 * Comma delimited list of table names to generate
@@ -202,9 +211,19 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		getLog().info("context: " + this.getPluginContext());
 		getLog().info("tableAlias: " + tableAlias);
 
+		java.util.Properties info = new java.util.Properties();
+
+		if (jdbcUserId != null) {
+			info.put("user", jdbcUserId);
+		}
+		if (getJDBCPassword() != null) {
+			info.put("password", getJDBCPassword());
+		}
+		info.putAll(getTableAlias());
+
 		Database databaseObj = new DatabaseFactoryImpl().getDatabase(
 				DatabaseEnum.getDatabaseEnum(dbName), database, getJDBCUrl(),
-				jdbcUserId, getJDBCPassword());
+				info, this.jdbcDriver);
 
 		runScriptIfNecessary(databaseObj);
 
@@ -213,18 +232,31 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 			StringTokenizer st = new StringTokenizer(tableNames, ","); //$NON-NLS-1$
 			while (st.hasMoreTokens()) {
 				String s = st.nextToken().trim();
-				if (s.length() > 0) {
-					String name = getTableAlias().get(s);
-					if (StringUtils.isNotBlank(name)) {
-						fullyqualifiedTables.add(name);
-					} else {
-						fullyqualifiedTables.add(s);
-					}
-				}
+				fullyqualifiedTables.add(s);
 			}
 		}
 
 		if (fullyqualifiedTables.isEmpty()) {
+			Set<String> tables = new HashSet<String>();
+			Pattern p = Pattern.compile("^_(\\d)+$");
+			for (String s : databaseObj.getTablesName()) {
+				String find = null;
+				for (Map.Entry<String, String> e : getTableAlias().entrySet()) {
+					if (s.startsWith(e.getKey())) {
+						String left = s.substring(0, e.getKey().length());
+						if (p.matcher(left).find()) {
+							find = e.getKey();
+							break;
+						}
+					}
+				}
+				if (null != find) {
+					tables.add(find);
+				} else {
+					tables.add(s);
+				}
+
+			}
 			fullyqualifiedTables.addAll(databaseObj.getTablesName());
 		}
 
@@ -236,7 +268,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 			List<MybatisBean> list = creater.create(databaseObj, getJDBCUrl(),
 					database, jdbcUserId, getJDBCPassword(), packages,
 					outputDirectory.getAbsolutePath(), isOverwrite(),
-					tablesArray);
+					getDbTables(), tablesArray);
 			if (null == list || list.size() == 0) {
 				return;
 			}
@@ -247,7 +279,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				// /////////////////////////////////////////////////////////////
 				StringBuffer replaceBuf = new StringBuffer();
 				replaceBuf.append("jdbc.driver=");
-				replaceBuf.append(databaseObj.getDirverClass());
+				replaceBuf.append(databaseObj.getDriverClass());
 				replaceBuf.append(Constants.LINE_SEPARATOR);
 				replaceBuf.append("jdbc.url=");
 				replaceBuf.append(getJDBCUrl());
@@ -380,7 +412,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		}
 
 		SqlScriptRunner scriptRunner = new SqlScriptRunner(sqlScript,
-				database.getDirverClass(), getJDBCUrl(), jdbcUserId,
+				database.getDriverClass(), getJDBCUrl(), jdbcUserId,
 				getJDBCPassword());
 		scriptRunner.executeScript();
 	}
@@ -416,5 +448,29 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 				.split(this.tableAlias.substring(1,
 						this.tableAlias.length() - 1));
 		return tableAlias;
+	}
+
+	private Map<String, DbTable> getDbTables() {
+
+		Map<String, DbTable> map = new HashMap<String, DbTable>();
+		File sqlTemplateDir = new File(sqlTemplatePath);
+		if (!sqlTemplateDir.exists()) {
+			return map;
+		}
+
+		File[] files = sqlTemplateDir.listFiles();
+		for (File file : files) {
+			if (file.getName().endsWith(".xml")) {
+				DbTable dbTable = SqlTemplateParserUtil.parseDbTable(file);
+				if (null != dbTable) {
+					String name = getTableAlias().get(dbTable.getName());
+					if (null == name) {
+						name = dbTable.getName();
+					}
+					map.put(name.toLowerCase(), dbTable);
+				}
+			}
+		}
+		return map;
 	}
 }

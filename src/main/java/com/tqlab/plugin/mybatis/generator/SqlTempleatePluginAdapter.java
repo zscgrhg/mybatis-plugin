@@ -57,7 +57,6 @@ import org.mybatis.generator.api.dom.java.Parameter;
 import org.mybatis.generator.api.dom.java.TopLevelClass;
 import org.mybatis.generator.config.Context;
 
-import com.google.common.base.Splitter;
 import com.tqlab.plugin.mybatis.MybatisPluginException;
 import com.tqlab.plugin.mybatis.generator.config.Config;
 import com.tqlab.plugin.mybatis.util.Constants;
@@ -126,27 +125,6 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		final String tableName = introspectedTable
 				.getAliasedFullyQualifiedTableNameAtRuntime();
 		DbTable dbTable = this.map.get(tableName.toLowerCase());
-
-		String s = (String) properties.get(Constants.TABLE_ALIAS);
-		if (null == dbTable && null != s && s.trim().length() >= 5) {
-
-			//
-			Map<String, String> tableAlias = Splitter.on(',')
-					.withKeyValueSeparator('=')
-					.split(s.substring(1, s.length() - 1));
-			// Find by Alias
-			if (null == dbTable && null != tableAlias) {
-				for (Iterator<Map.Entry<String, String>> i = tableAlias
-						.entrySet().iterator(); i.hasNext();) {
-					Map.Entry<String, String> e = i.next();
-					if (e.getValue().equalsIgnoreCase(tableName)) {
-						dbTable = this.map.get(e.getKey().toLowerCase());
-						break;
-					}
-				}
-
-			}
-		}
 		if (null == dbTable) {
 			return true;
 		}
@@ -177,10 +155,6 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 			final List<Parameter> list = this.parseSqlParameter(sql, hasScript,
 					operation.getParams());
-			if (list.size() > 0) {
-				importedTypes.add(new FullyQualifiedJavaType(
-						"org.apache.ibatis.annotations.Param")); //$NON-NLS-1$
-			}
 
 			if (hasScript) {
 				importedTypes
@@ -189,6 +163,18 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				importedTypes.add(new FullyQualifiedJavaType(
 						"org.apache.ibatis.annotations.Lang"));
 				method.addAnnotation("@Lang(XMLLanguageDriver.class)");
+			}
+
+			if (list.size() == 1
+					&& list.get(0).getType()
+							.equals(FullyQualifiedJavaType.getObjectInstance())) {
+				Parameter p = list.get(0);
+				list.clear();
+				Parameter newParam = new Parameter(p.getType(), p.getName());
+				list.add(newParam);
+			} else if (list.size() > 0) {
+				importedTypes.add(new FullyQualifiedJavaType(
+						"org.apache.ibatis.annotations.Param")); //$NON-NLS-1$
 			}
 
 			for (Parameter p : list) {

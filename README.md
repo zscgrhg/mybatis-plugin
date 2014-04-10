@@ -213,3 +213,4 @@ More sample: [https://github.com/tqlab/mybatis-plugin/blob/master/demo/src/main/
 1. update jsqlparser version to 0.8.9
 2. Add mybatis Options annotation supported.
 3. Add alias name config supported.
+4. Add specific driver supported.

@@ -16,7 +16,7 @@
  */
 package com.tqlab.plugin.mybatis.database;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author John Lee
@@ -28,7 +28,7 @@ public interface Database {
 	 * 
 	 * @return
 	 */
-	List<String> getTablesName();
+	Set<String> getTablesName();
 
 	/**
 	 * 
@@ -46,7 +46,7 @@ public interface Database {
 	 * 
 	 * @return
 	 */
-	String getDirverClass();
+	String getDriverClass();
 
 	/**
 	 * 

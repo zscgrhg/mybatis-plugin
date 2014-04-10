@@ -35,6 +35,7 @@ public class Config {
 			}
 			items.add(CacheConfigItem.valueOf(key, obj));
 		}
+		System.getProperties().putAll(props);
 	}
 
 	public String getCacheValue(final String classFQN) {

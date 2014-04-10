@@ -68,7 +68,8 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			final String jdbcUrl, final String databaseName,
 			final String userName, final String password,
 			final String dalPackage, final String outputDir,
-			final boolean overwrite, final String... tables) {
+			final boolean overwrite, final Map<String, DbTable> dbTables,
+			final String... tables) {
 
 		String dir = outputDir.replace(File.separator, "/");
 		String url = jdbcUrl;
@@ -155,7 +156,7 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		sb.append(Constants.LINE_SEPARATOR);
 		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("    <jdbcConnection driverClass=\""
-				+ database.getDirverClass() + "\"");
+				+ database.getDriverClass() + "\"");
 		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      connectionURL=\"" + url + "\"");
 		sb.append(Constants.LINE_SEPARATOR);
@@ -163,6 +164,16 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		sb.append(Constants.LINE_SEPARATOR);
 		sb.append("      password=\"" + password + "\">");
 		sb.append(Constants.LINE_SEPARATOR);
+		if (null != properties) {
+			Set<Entry<Object, Object>> set = properties.entrySet();
+			for (Iterator<Entry<Object, Object>> i = set.iterator(); i
+					.hasNext();) {
+				Entry<Object, Object> e = i.next();
+				sb.append("      <property name=\"" + e.getKey()
+						+ "\" value=\"" + e.getValue() + "\" />");
+				sb.append(Constants.LINE_SEPARATOR);
+			}
+		}
 		sb.append("    </jdbcConnection>");
 		sb.append(Constants.LINE_SEPARATOR);
 		sb.append(Constants.LINE_SEPARATOR);
@@ -237,14 +248,17 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			myBatisGenerator.generate(null);
 
 			List<MybatisBean> myList = new ArrayList<MybatisBean>();
-			for (String s : tables) {
-				s = getTableName(s);
+			for (String s0 : tables) {
+				String s = getTableName(s0);
 				String temp = getObjectName(s, tables);
 				String beanId = temp.substring(0, 1).toLowerCase()
 						+ temp.substring(1) + "Mapper";
 				MybatisBean mybatisBean = new MybatisBean();
 				mybatisBean.setBeanId(beanId);
 				mybatisBean.setBeanName(beanId);
+				DbTable dbTable = dbTables.get(s0);
+				mybatisBean.setSqlSessionFactory(null == dbTable ? null
+						: dbTable.getSqlSessionFactory());
 				mybatisBean
 						.setClassPath(dalPackage + ".dao." + temp + "Mapper");
 				myList.add(mybatisBean);

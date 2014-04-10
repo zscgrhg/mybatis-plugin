@@ -5,6 +5,7 @@ package com.tqlab.plugin.mybatis.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * @author John Lee
@@ -22,23 +23,13 @@ public class HsqldbDatabase extends AbstractDatabase {
 	 * @param password
 	 */
 	public HsqldbDatabase(final String database, final String url,
-			final String user, final String password) {
-		super(DRIVER, database, url, user, password);
+			final Properties properties) {
+		super(DRIVER, database, url, properties);
 	}
 
 	@Override
 	protected String getTablesQuerySql() {
 		return "SELECT * FROM INFORMATION_SCHEMA.SYSTEM_TABLES where TABLE_TYPE='TABLE';";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.tqlab.plugin.mybatis.database.Database#getDirverClass()
-	 */
-	@Override
-	public String getDirverClass() {
-		return DRIVER;
 	}
 
 	protected String getTableName(ResultSet resultSet) throws SQLException {

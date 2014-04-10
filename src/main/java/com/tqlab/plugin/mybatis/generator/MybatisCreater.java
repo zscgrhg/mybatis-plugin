@@ -17,6 +17,7 @@
 package com.tqlab.plugin.mybatis.generator;
 
 import java.util.List;
+import java.util.Map;
 
 import com.tqlab.plugin.mybatis.database.Database;
 
@@ -36,6 +37,7 @@ public interface MybatisCreater {
 	 * @param dalPackage
 	 * @param dir
 	 * @param overwrite
+	 * @param dbTables
 	 * @param tables
 	 *            Specific the tables to create MYBATIS configuration. If tables
 	 *            is null, all tables in the database will be used.
@@ -43,5 +45,6 @@ public interface MybatisCreater {
 	 */
 	List<MybatisBean> create(Database database, String url,
 			String databaseName, String userName, String password,
-			String dalPackage, String dir, boolean overwrite, String... tables);
+			String dalPackage, String dir, boolean overwrite,
+			final Map<String, DbTable> dbTables, String... tables);
 }
