@@ -12,6 +12,7 @@ public class DbColumn {
 	private String name;
 	private String javaProperty;
 	private String javaType;
+	private String jdbcType;
 
 	/**
 	 * @return the name
@@ -36,7 +37,8 @@ public class DbColumn {
 	}
 
 	/**
-	 * @param javaProperty the javaProperty to set
+	 * @param javaProperty
+	 *            the javaProperty to set
 	 */
 	public final void setJavaProperty(String javaProperty) {
 		this.javaProperty = javaProperty;
@@ -55,6 +57,21 @@ public class DbColumn {
 	 */
 	public final void setJavaType(String javaType) {
 		this.javaType = javaType;
+	}
+
+	/**
+	 * @return the jdbcType
+	 */
+	public final String getJdbcType() {
+		return jdbcType;
+	}
+
+	/**
+	 * @param jdbcType
+	 *            the jdbcType to set
+	 */
+	public final void setJdbcType(String jdbcType) {
+		this.jdbcType = jdbcType;
 	}
 
 }

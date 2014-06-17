@@ -292,7 +292,11 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		LOGGER.info("getTableString >>> " + tableName);
 
 		final String name = getTableName(tableName);
-		final ColumnResult result = database.getColumns(name);
+		String realTableName = config.getTableAlias().get(name);
+		if (null == realTableName) {
+			realTableName = name;
+		}
+		final ColumnResult result = database.getColumns(realTableName);
 		final StringBuffer buf = new StringBuffer(300);
 		buf.append("    <table ");
 		buf.append("tableName=\"");

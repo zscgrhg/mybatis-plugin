@@ -189,7 +189,8 @@ public class AnnotatedGenerator extends AbstractJavaMapperMethodGenerator {
 			javaIndent(sb, 1);
 			DbColumn column = i.next();
 			sb.append(ResultAnnotationUtil.getResultAnnotation(interfaze,
-					column.getName(), column.getJavaProperty()));
+					column.getName(), column.getJavaProperty(),
+					column.getJdbcType()));
 			if (i.hasNext()) {
 				sb.append(',');
 			}

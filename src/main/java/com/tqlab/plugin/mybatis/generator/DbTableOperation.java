@@ -29,7 +29,7 @@ public class DbTableOperation {
 	private boolean many = true;
 	private String comment;
 	private String sql;
-	private String resultType; // 有resultType就忽略result
+	private String resultType;
 	private List<DbOption> options = new ArrayList<DbOption>();
 	private List<DbParam> params = new ArrayList<DbParam>();
 	private DbSelectResult result;

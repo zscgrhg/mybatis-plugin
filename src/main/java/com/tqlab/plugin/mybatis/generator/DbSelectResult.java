@@ -55,12 +55,15 @@ public class DbSelectResult {
 	 * @param name
 	 * @param javaProperty
 	 * @param javaType
+	 * @param jdbcType
 	 */
-	public void addDbColumn(String name, String javaProperty, String javaType) {
+	public void addDbColumn(String name, String javaProperty, String javaType,
+			String jdbcType) {
 		DbColumn dbColumn = new DbColumn();
 		dbColumn.setName(name);
 		dbColumn.setJavaType(javaType);
 		dbColumn.setJavaProperty(javaProperty);
+		dbColumn.setJdbcType(jdbcType);
 		this.list.add(dbColumn);
 	}
 }

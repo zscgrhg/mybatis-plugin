@@ -14,13 +14,12 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
@@ -46,7 +45,6 @@ import com.tqlab.plugin.mybatis.generator.DbParam;
 import com.tqlab.plugin.mybatis.generator.DbSelectResult;
 import com.tqlab.plugin.mybatis.generator.DbTable;
 import com.tqlab.plugin.mybatis.generator.DbTableOperation;
-import com.tqlab.plugin.mybatis.generator.SimpleErrorHandler;
 
 /**
  * @author John Lee
@@ -76,60 +74,66 @@ public final class SqlTemplateParserUtil {
 	private static final String PROPERTY = "property";
 	private static final String JAVA_TYPE = "javaType";
 	private static final String JAVA_PROPERTY = "javaProperty";
+	private static final String JDBC_TYPE = "jdbcType";
 	private static final String COLUMN = "column";
 	private static final String SQL_SESSION_FACTORY = "sqlSessionFactory";
 
 	private static final String MYBATIS_XSD_LOCAL = "/com/tqlab/plugin/mybatis/tqlab-mybatis-plugin.xsd";
 	private static final String MYBATIS_XSD_REMOTE = "http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd";
-	private static final String FEATURE = "http://apache.org/xml/features/validation/schema";
 
 	private SqlTemplateParserUtil() {
 
 	}
 
-	private static SAXReader reader;
-
-	private static SAXReader getSAXReader() throws SAXException,
+	private static void validate(File file) throws SAXException,
 			ParserConfigurationException {
-		if (null != reader) {
-			return reader;
+		// 1. Lookup a factory for the W3C XML Schema language
+		SchemaFactory factory = SchemaFactory
+				.newInstance("http://www.w3.org/2001/XMLSchema");
+
+		// 2. Compile the schema.
+		// Here the schema is loaded from a java.io.File, but you could use
+		// a java.net.URL or a javax.xml.transform.Source instead.
+		Schema schema = factory.newSchema(new StreamSource(
+				getSchemaInputStream()));
+
+		// 3. Get a validator from the schema.
+		Validator validator = schema.newValidator();
+
+		// 4. Parse the document you want to check.
+		Source source = new StreamSource(file);
+
+		// 5. Check the document
+		try {
+			validator.validate(source);
+		} catch (Exception ex) {
+			LOGGER.error("XML validate error, file:" + file, ex);
 		}
-		// Check remote xsd file exit or not
+	}
+
+	private static InputStream getSchemaInputStream() {
 		InputStream is = null;
-		// try {
-		// URL url = new URL(MYBATIS_XSD_REMOTE);
-		// is = url.openStream();
-		// } catch (IOException e) {
-		// is = null;
-		// LOGGER.warn("Read file: " + MYBATIS_XSD_REMOTE + " error.");
-		// }
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-		if (null == is) {
-			SchemaFactory schemaFactory = SchemaFactory
-					.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			Source sources[] = new Source[] { new StreamSource(
-					SqlTemplateParserUtil.class
-							.getResourceAsStream(MYBATIS_XSD_LOCAL)) };
-			factory.setSchema(schemaFactory.newSchema(sources));
-			SAXParser parser = factory.newSAXParser();
-			reader = new SAXReader(parser.getXMLReader());
-			reader.setValidation(false);
-		} else {
-			factory.setValidating(true);
-			SAXParser parser = factory.newSAXParser();
-			reader = new SAXReader(parser.getXMLReader());
-			reader.setValidation(true);
-			// request XML Schema validation
-			reader.setFeature(FEATURE, true);
+		try {
+			URL url = new URL(MYBATIS_XSD_REMOTE);
+			is = url.openStream();
+		} catch (IOException e) {
+			is = null;
+			LOGGER.warn("Read file: " + MYBATIS_XSD_REMOTE + " error.");
 		}
-		reader.setErrorHandler(new SimpleErrorHandler());
-		return reader;
+
+		if (null == is) {
+			is = SqlTemplateParserUtil.class
+					.getResourceAsStream(MYBATIS_XSD_LOCAL);
+		}
+		return is;
 	}
 
 	public static DbTable parseDbTable(File file) {
+
 		Document document = null;
 		try {
-			SAXReader reader = getSAXReader();
+			validate(file);
+			SAXReader reader = new SAXReader(false);
 			//
 			document = reader.read(new FileInputStream(file));
 		} catch (Exception e) {
@@ -360,8 +364,10 @@ public final class SqlTemplateParserUtil {
 				String javaType = el.attributeValue(JAVA_TYPE);
 				String javaProperty = el.attributeValue(JAVA_PROPERTY);
 				String column = el.attributeValue(COLUMN);
+				String jdbcType = el.attributeValue(JDBC_TYPE);
 				processProperty(topLevelClass, column, javaProperty, javaType);
-				dbSelectResult.addDbColumn(column, javaProperty, javaType);
+				dbSelectResult.addDbColumn(column, javaProperty, javaType,
+						jdbcType);
 			}
 			maps.put(objectType.getFullyQualifiedName(), generatedJavaFile);
 		}
@@ -375,7 +381,9 @@ public final class SqlTemplateParserUtil {
 				String javaType = el.attributeValue(JAVA_TYPE);
 				String javaProperty = el.attributeValue(JAVA_PROPERTY);
 				String column = el.attributeValue(COLUMN);
-				dbSelectResult.addDbColumn(column, javaProperty, javaType);
+				String jdbcType = el.attributeValue(JDBC_TYPE);
+				dbSelectResult.addDbColumn(column, javaProperty, javaType,
+						jdbcType);
 			}
 			dbSelectResult.setType(fullyQualifiedJavaType);
 		}
