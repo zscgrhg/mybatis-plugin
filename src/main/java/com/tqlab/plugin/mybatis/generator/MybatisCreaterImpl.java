@@ -257,6 +257,9 @@ public class MybatisCreaterImpl implements MybatisCreater {
 				mybatisBean.setBeanId(beanId);
 				mybatisBean.setBeanName(beanId);
 				DbTable dbTable = dbTables.get(s0);
+				if (null == dbTable) {
+					dbTable = dbTables.get(this.config.getTableAlias().get(s0));
+				}
 				mybatisBean.setSqlSessionFactory(null == dbTable ? null
 						: dbTable.getSqlSessionFactory());
 				mybatisBean
