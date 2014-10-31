@@ -73,7 +73,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	/**
 	 * JDBC URL to use if a sql.script.file is specified
 	 */
-	@Parameter(property = "mybatis.generator.jdbcURL", required = true)
+	@Parameter(property = "mybatis.generator.jdbcURL")
 	private String jdbcURL;
 
 	/**
@@ -103,13 +103,13 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	/**
 	 * The table name's prefix. For example, db_xxxxxx.
 	 */
-	@Parameter(property = "mybatis.generator.tablePrefix", defaultValue = "")
+	@Parameter(property = "mybatis.generator.tablePrefix")
 	private String tablePrefix;
 
 	/**
 	 * The application database name
 	 */
-	@Parameter(property = "mybatis.generator.database", required = true)
+	@Parameter(property = "mybatis.generator.database")
 	private String database;
 
 	/**
@@ -181,6 +181,9 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	}
 
 	private String getJDBCUrl() {
+		if (StringUtils.isBlank(jdbcURL)) {
+			return " ";
+		}
 		final DatabaseEnum databaseEnum = DatabaseEnum.getDatabaseEnum(dbName);
 		String jdbcURL = this.jdbcURL;
 		if (databaseEnum == DatabaseEnum.HSQLDB) {
@@ -211,7 +214,8 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		getLog().info("context: " + this.getPluginContext());
 		getLog().info("tableAlias: " + tableAlias);
 
-		java.util.Properties info = new java.util.Properties();
+		Properties properties = buildProperties();
+		Properties info = new Properties();
 
 		if (jdbcUserId != null) {
 			info.put("user", jdbcUserId);
@@ -219,7 +223,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		if (getJDBCPassword() != null) {
 			info.put("password", getJDBCPassword());
 		}
-		info.putAll(getTableAlias());
+		info.putAll(properties);
 
 		Database databaseObj = new DatabaseFactoryImpl().getDatabase(
 				DatabaseEnum.getDatabaseEnum(dbName), database, getJDBCUrl(),
@@ -261,8 +265,6 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		}
 
 		try {
-			Properties properties = buildProperties();
-
 			String tablesArray[] = fullyqualifiedTables.toArray(new String[0]);
 			MybatisCreater creater = new MybatisCreaterImpl(properties);
 			List<MybatisBean> list = creater.create(databaseObj, getJDBCUrl(),

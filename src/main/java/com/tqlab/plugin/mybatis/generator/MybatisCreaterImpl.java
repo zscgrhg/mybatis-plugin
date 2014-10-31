@@ -73,7 +73,8 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 		String dir = outputDir.replace(File.separator, "/");
 		String url = jdbcUrl;
-		if (url.contains("&") && !url.contains("&amp;")) {
+		if (StringUtils.isNotBlank(url) && url.contains("&")
+				&& !url.contains("&amp;")) {
 			url = url.replace("&", "&amp;");
 		}
 
