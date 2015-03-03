@@ -3,6 +3,8 @@
  */
 package com.tqlab.plugin.mybatis.util;
 
+import java.util.regex.Pattern;
+
 /**
  * @author John Lee
  * 
@@ -12,7 +14,7 @@ public final class SqlUtil {
 	/**
 	 * <xxxx /> or <xxxx>fff</xxxx>
 	 */
-	private static final String XML_PATTERN = "<[^>]*>";
+	private static final String XML_PATTERN = "<[^>]+>[^<]*</[^>]+>";
 
 	/**
 	 * <pre>
@@ -20,9 +22,9 @@ public final class SqlUtil {
 	 * </ foreach>
 	 * </pre>
 	 */
-	private static final String FOREACH_PATTERN = "<([Ff][Oo][Rr][Ee][Aa][Cc][Hh])([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*>([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*</([Ff][Oo][Rr][Ee][Aa][Cc][Hh])>";
+	private static final String FOREACH_PATTERN = "<(foreach)([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*>([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*</(foreach)>";
 
-	private static final String SELECT_KEY_PATTERN = "<([sS][eE][lL][eE][cC][tT][kK][eE][yY])([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*>([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*</([sS][eE][lL][eE][cC][tT][kK][eE][yY])>";
+	private static final String SELECT_KEY_PATTERN = "<(selectKey)([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*>([\\sa-zA-Z0-9=\"#{}(),_\\-\\\\])*</(selectKey)>";
 	/**
 	 * Such as #{key,jdbcType=BIGINT}
 	 */
@@ -31,15 +33,14 @@ public final class SqlUtil {
 	/**
 	 * TOP #{size,jdbcType=BIGINT}
 	 */
-	private static final String TOP_PATTERN = "([Tt][Oo][Pp])(\\s+"
-			+ PARAM_PATTERN + ")";
+	private static final String TOP_PATTERN = "(top)(\\s+" + PARAM_PATTERN
+			+ ")";
 
 	/**
 	 * Limit 0, #{size,jdbcType=BIGINT}
 	 */
-	private static final String LIMIT_PATTERN = "([Ll][Ii][Mm][Ii][Tt])(\\s*(\\d+|"
-			+ PARAM_PATTERN
-			+ ")\\s*(,|([Oo][Ff][Ff][Ss][Ee][Tt]))\\s*)?(\\s*(\\d+|"
+	private static final String LIMIT_PATTERN = "(limit)(\\s*(\\d+|"
+			+ PARAM_PATTERN + ")\\s*(,|offset)\\s*)?(\\s*(\\d+|"
 			+ PARAM_PATTERN + "))";
 
 	private static final String LT = "&lt;";
@@ -60,9 +61,9 @@ public final class SqlUtil {
 	 */
 	public static String filterSql(final String sql) {
 		String mybatisSql = filterXml(sql, " ");
-		mybatisSql = mybatisSql.replaceAll(TOP_PATTERN, "TOP 1 ");
-		mybatisSql = mybatisSql.replaceAll(LIMIT_PATTERN, "LIMIT 1 ");
-		mybatisSql = mybatisSql.replaceAll(PARAM_PATTERN, "TQLAB ");
+		mybatisSql = replaceAll(TOP_PATTERN, mybatisSql, "TOP 1 ");
+		mybatisSql = replaceAll(LIMIT_PATTERN, mybatisSql, "LIMIT 1 ");
+		mybatisSql = replaceAll(PARAM_PATTERN, mybatisSql, "TQLAB ");
 		mybatisSql = mybatisSql.trim();
 		return mybatisSql;
 	}
@@ -74,9 +75,20 @@ public final class SqlUtil {
 	 * @return
 	 */
 	public static String filterXml(final String str, final String replacement) {
-		String s = str.replaceAll(FOREACH_PATTERN, "('')");
-		s = s.replaceAll(SELECT_KEY_PATTERN, "");
-		return s.replaceAll(XML_PATTERN, replacement);
+
+		String s = replaceAll(FOREACH_PATTERN, str, "('')");
+		s = replaceAll(SELECT_KEY_PATTERN, s, "");
+		s = doFilterXml(s, replacement);
+
+		return s;
+	}
+
+	private static String doFilterXml(final String str, final String replacement) {
+		String s = str;
+		while (Pattern.compile(XML_PATTERN).matcher(s).find()) {
+			s = replaceAll(XML_PATTERN, s, replacement);
+		}
+		return s;
 	}
 
 	/**
@@ -156,5 +168,11 @@ public final class SqlUtil {
 			}
 		}
 		return false;
+	}
+
+	private static String replaceAll(String pattern, String str,
+			String replacement) {
+		return Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(str)
+				.replaceAll(replacement);
 	}
 }

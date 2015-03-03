@@ -26,6 +26,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -91,7 +92,13 @@ public abstract class AbstractDatabase implements Database {
 		try {
 			if (null == conn || conn.isClosed()) {
 				Class.forName(driverClass);
-				conn = DriverManager.getConnection(url, properties);
+				Properties p = new Properties();
+				for (Entry<Object, Object> e : properties.entrySet()) {
+					if (e.getValue() instanceof String) {
+						p.put(e.getKey(), e.getValue());
+					}
+				}
+				conn = DriverManager.getConnection(url, p);
 			}
 
 		} catch (ClassNotFoundException e) {
@@ -148,8 +155,8 @@ public abstract class AbstractDatabase implements Database {
 				}
 				primaryKeys.add(primaryKey);
 			}
-		} catch (SQLException e) {
-			LOGGER.error(e);
+		} catch (Exception e) {
+			LOGGER.error("Error", e);
 		} finally {
 			releaseDbQuery(stmt, res);
 		}
