@@ -5,9 +5,7 @@ package com.tqlab.plugin.mybatis.generator.config;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import com.tqlab.plugin.mybatis.util.Constants;
@@ -58,15 +56,5 @@ public class Config {
 			prefix = prefix.trim().toLowerCase();
 		}
 		return prefix;
-	}
-
-	@SuppressWarnings("unchecked")
-	public Map<String, String> getTableAlias() {
-		Map<String, String> map = (Map<String, String>) props
-				.get(Constants.TABLE_ALIAS);
-		if (null == map) {
-			map = new HashMap<String, String>();
-		}
-		return map;
 	}
 }

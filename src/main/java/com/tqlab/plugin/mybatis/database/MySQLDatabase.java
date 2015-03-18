@@ -16,8 +16,12 @@
  */
 package com.tqlab.plugin.mybatis.database;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -56,6 +60,54 @@ public class MySQLDatabase extends AbstractDatabase {
 		return DatabaseEnum.MYSQL;
 	}
 
+	public ColumnResult getColumns(final String tableName) {
+
+		final ColumnResult result = new ColumnResult();
+
+		final List<String> columns = new ArrayList<String>();
+		final List<String> primaryKeys = new ArrayList<String>();
+		final List<String> autoIncrementPK = new ArrayList<String>();
+
+		result.setTableName(tableName);
+		result.setColumns(columns);
+		result.setAutoIncrementPrimaryKeys(autoIncrementPK);
+		result.setPrimaryKeys(primaryKeys);
+
+		Statement stmt = null;
+		ResultSet res = null;
+		try {
+			final Connection conn = this.getConnection();
+			stmt = conn.createStatement();
+			final String sql = getColumnsQuerySql(tableName);
+			res = stmt.executeQuery(sql);
+
+			List<String> autoIncrementColumn = new ArrayList<String>();
+			while (res.next()) {
+				final String column = getColumnName(res.getString("Field"));
+				columns.add(column);
+				if ("auto_increment".equalsIgnoreCase(res.getString("Extra"))) {
+					autoIncrementColumn.add(column);
+				}
+
+				if ("PRI".equalsIgnoreCase(res.getString("Key"))) {
+					String primaryKey = res.getString("Key");
+					if (autoIncrementColumn.contains(primaryKey)) {
+						autoIncrementPK.add(primaryKey);
+					}
+					primaryKeys.add(primaryKey);
+				}
+			}
+
+			res.close();
+		} catch (Exception e) {
+			LOGGER.error("Error", e);
+		} finally {
+			releaseDbQuery(stmt, res);
+		}
+
+		return result;
+	}
+
 	@Override
 	protected String getColumnsQuerySql(final String table) {
 		if (null == table) {
@@ -68,7 +120,7 @@ public class MySQLDatabase extends AbstractDatabase {
 		if (!tableName.endsWith("`")) {
 			tableName = tableName + "`";
 		}
-		return "SELECT * FROM " + tableName + " LIMIT 1";
+		return "SHOW COLUMNS FROM " + tableName + "";
 	}
 
 	@Override

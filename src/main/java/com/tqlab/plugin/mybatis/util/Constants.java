@@ -19,7 +19,6 @@ public final class Constants {
 	public static final String SQL_TEMPLATE_PATH = "sql.template.path";
 	public static final String USE_CACHE = "use.cache";
 	public static final String TABLE_PREFIX = "table.prefix";
-	public static final String TABLE_ALIAS = "table.alias";
 
 	private Constants() {
 	}

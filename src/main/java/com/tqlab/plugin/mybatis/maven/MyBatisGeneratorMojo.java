@@ -146,12 +146,6 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 	private String generateOsgiConfig;
 
 	/**
-	 * Tables alias config
-	 */
-	@Parameter
-	private String tableAlias;
-
-	/**
 	 * Extra config.
 	 */
 	@Parameter
@@ -398,7 +392,6 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 		config.setProperties(properties);
 		config.setSqlScript(sqlScript);
 		config.setSqlTemplatePath(sqlTemplatePath);
-		config.setTableAlias(tableAlias);
 		config.setTableNames(tableNames);
 		config.setTablePrefix(tablePrefix);
 		config.setUseCache(useCache);

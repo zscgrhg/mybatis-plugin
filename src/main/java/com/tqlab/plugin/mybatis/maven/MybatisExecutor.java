@@ -12,14 +12,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.mybatis.generator.internal.util.StringUtility;
 
-import com.google.common.base.Splitter;
 import com.tqlab.plugin.mybatis.database.Database;
 import com.tqlab.plugin.mybatis.database.DatabaseEnum;
 import com.tqlab.plugin.mybatis.database.DatabaseFactoryImpl;
@@ -63,8 +61,7 @@ public class MybatisExecutor {
 			return;
 		}
 
-		// log.info("context: " + this.getPluginContext());
-		log.info("tableAlias: " + config.getTableAlias());
+		log.info("db name: " + config.getDbName());
 
 		Properties properties = buildProperties();
 		Properties info = new Properties();
@@ -96,24 +93,8 @@ public class MybatisExecutor {
 
 		if (fullyqualifiedTables.isEmpty()) {
 			Set<String> tables = new HashSet<String>();
-			Pattern p = Pattern.compile("^_(\\d)+$");
 			for (String s : databaseObj.getTablesName()) {
-				String find = null;
-				for (Map.Entry<String, String> e : getTableAlias().entrySet()) {
-					if (s.startsWith(e.getKey())) {
-						String left = s.substring(0, e.getKey().length());
-						if (p.matcher(left).find()) {
-							find = e.getKey();
-							break;
-						}
-					}
-				}
-				if (null != find) {
-					tables.add(find);
-				} else {
-					tables.add(s);
-				}
-
+				tables.add(s);
 			}
 			fullyqualifiedTables.addAll(databaseObj.getTablesName());
 		}
@@ -196,27 +177,11 @@ public class MybatisExecutor {
 		if (StringUtils.isNotBlank(config.getTablePrefix())) {
 			properties.put(Constants.TABLE_PREFIX, config.getTablePrefix());
 		}
-		if (null != config.getTableAlias()) {
-			properties.put(Constants.TABLE_ALIAS, getTableAlias());
-		}
 
 		if (null != config.getProperties()) {
 			properties.putAll(config.getProperties());
 		}
 		return properties;
-	}
-
-	private Map<String, String> getTableAlias() {
-		if (StringUtils.isBlank(config.getTableAlias())
-				|| config.getTableAlias().length() < 5) {
-			return new HashMap<String, String>();
-		}
-		Map<String, String> tableAlias = Splitter
-				.on(',')
-				.withKeyValueSeparator('=')
-				.split(config.getTableAlias().substring(1,
-						config.getTableAlias().length() - 1));
-		return tableAlias;
 	}
 
 	private Map<String, DbTable> getDbTables() {
@@ -232,10 +197,7 @@ public class MybatisExecutor {
 			if (file.getName().endsWith(".xml")) {
 				DbTable dbTable = SqlTemplateParserUtil.parseDbTable(file);
 				if (null != dbTable) {
-					String name = getTableAlias().get(dbTable.getName());
-					if (null == name) {
-						name = dbTable.getName();
-					}
+					String name = dbTable.getName();
 					map.put(name.toLowerCase(), dbTable);
 				}
 			}

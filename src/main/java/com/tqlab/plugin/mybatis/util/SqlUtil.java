@@ -130,7 +130,7 @@ public final class SqlUtil {
 	public static String pdataFilter(final String sql, boolean hasScript) {
 		String s = sql.trim();
 		if (hasScript) {
-			s = s.replace("&", AMP);
+			// s = s.replace("&", AMP);
 			StringBuilder buf = new StringBuilder();
 			for (int i = 0; i < s.length(); i++) {
 				char c = s.charAt(i);
@@ -151,6 +151,20 @@ public final class SqlUtil {
 						} else {
 							buf.append(LT);
 						}
+					}
+				} else if (c == '&') {
+					//
+					if (i + 3 < s.length()) {
+						//
+						String tmp = s.substring(i, i + 4);
+						if (tmp.equals("&lt;") || tmp.equals("&gt;")) {
+							buf.append(c);
+							continue;
+						} else {
+							buf.append(AMP);
+						}
+					} else {
+						buf.append(c);
 					}
 				} else {
 					buf.append(c);

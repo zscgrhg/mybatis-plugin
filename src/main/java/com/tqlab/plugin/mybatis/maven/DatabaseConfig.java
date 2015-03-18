@@ -25,7 +25,6 @@ public class DatabaseConfig {
 	private String generateJdbcConfig;
 	private String generateSpringConfig;
 	private String generateOsgiConfig;
-	private String tableAlias;
 	private String useCache;
 	private Properties properties;
 
@@ -125,13 +124,6 @@ public class DatabaseConfig {
 	 */
 	public final String getGenerateOsgiConfig() {
 		return generateOsgiConfig;
-	}
-
-	/**
-	 * @return the tableAlias
-	 */
-	public final String getTableAlias() {
-		return tableAlias;
 	}
 
 	/**
@@ -266,14 +258,6 @@ public class DatabaseConfig {
 	 */
 	public final void setUseCache(String useCache) {
 		this.useCache = useCache;
-	}
-
-	/**
-	 * @param tableAlias
-	 *            the tableAlias to set
-	 */
-	public final void setTableAlias(String tableAlias) {
-		this.tableAlias = tableAlias;
 	}
 
 	/**

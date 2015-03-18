@@ -242,7 +242,7 @@ public class MybatisCreaterImpl implements MybatisCreater {
 				mybatisBean.setBeanName(beanId);
 				DbTable dbTable = dbTables.get(s0);
 				if (null == dbTable) {
-					dbTable = dbTables.get(this.config.getTableAlias().get(s0));
+					dbTable = dbTables.get(s0);
 				}
 				mybatisBean.setSqlSessionFactory(null == dbTable ? null
 						: dbTable.getSqlSessionFactory());
@@ -278,19 +278,14 @@ public class MybatisCreaterImpl implements MybatisCreater {
 
 		LOGGER.info("getTableString >>> " + tableName);
 
-		final String name = getTableName(tableName);
-		String realTableName = config.getTableAlias().get(name);
-		if (null == realTableName) {
-			realTableName = name;
-		}
-		final ColumnResult result = database.getColumns(realTableName);
+		final ColumnResult result = database.getColumns(tableName);
 		final StringBuffer buf = new StringBuffer(300);
 		buf.append("    <table ");
 		buf.append("tableName=\"");
-		buf.append(name);
+		buf.append(tableName);
 		buf.append("\" ");
 		buf.append("domainObjectName=\"");
-		buf.append(getObjectName(name, tables));
+		buf.append(getObjectName(tableName, tables));
 		buf.append("\" ");
 		buf.append("escapeWildcards=\"true\" ");
 		buf.append("enableSelectByExample=\"false\" ");
@@ -316,19 +311,9 @@ public class MybatisCreaterImpl implements MybatisCreater {
 		return buf.toString();
 	}
 
-	private String getObjectName(final String table, final String... tables) {
-		if (null == table || "".equals(table.trim())) {
+	private String getObjectName(String tableName, final String... tables) {
+		if (null == tableName || "".equals(tableName.trim())) {
 			return null;
-		}
-		String tableName = table;
-		for (Iterator<Map.Entry<String, String>> i = config.getTableAlias()
-				.entrySet().iterator(); i.hasNext();) {
-			Map.Entry<String, String> e = i.next();
-			if (e.getValue().equals(table)) {
-				// Use Alias
-				tableName = e.getKey();
-				break;
-			}
 		}
 
 		String prefix = config.getTablePrefix();
