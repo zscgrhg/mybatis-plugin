@@ -17,7 +17,9 @@
 package com.tqlab.plugin.mybatis.generator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.dom4j.Element;
 
@@ -32,8 +34,9 @@ public class DbTable {
 	private List<DbColumn> columns = new ArrayList<DbColumn>();
 	private List<DbSelectResult> selectResults = new ArrayList<DbSelectResult>();
 	private List<DbTableOperation> operations = new ArrayList<DbTableOperation>();
+	private Map<String, DbSql> sqls = new HashMap<String, DbSql>();
 	private Element rootElement;
-	
+
 	/**
 	 * @return the name
 	 */
@@ -110,6 +113,21 @@ public class DbTable {
 	}
 
 	/**
+	 * @return the sqls
+	 */
+	public final Map<String, DbSql> getSqls() {
+		return sqls;
+	}
+
+	/**
+	 * @param sqls
+	 *            the sqls to set
+	 */
+	public final void setSqls(Map<String, DbSql> sqls) {
+		this.sqls = sqls;
+	}
+
+	/**
 	 * @return the rootElement
 	 */
 	public final Element getRootElement() {
@@ -117,7 +135,8 @@ public class DbTable {
 	}
 
 	/**
-	 * @param rootElement the rootElement to set
+	 * @param rootElement
+	 *            the rootElement to set
 	 */
 	public final void setRootElement(Element rootElement) {
 		this.rootElement = rootElement;

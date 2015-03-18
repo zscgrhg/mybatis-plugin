@@ -3,6 +3,7 @@
  */
 package com.tqlab.plugin.mybatis.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import com.tqlab.plugin.mybatis.generator.DbColumn;
 import com.tqlab.plugin.mybatis.generator.DbOption;
 import com.tqlab.plugin.mybatis.generator.DbParam;
 import com.tqlab.plugin.mybatis.generator.DbSelectResult;
+import com.tqlab.plugin.mybatis.generator.DbSql;
 import com.tqlab.plugin.mybatis.generator.DbTable;
 import com.tqlab.plugin.mybatis.generator.DbTableOperation;
 
@@ -69,6 +71,7 @@ public final class SqlTemplateParserUtil {
 	private static final String PARAMS = "params";
 	private static final String PARAM = "param";
 	private static final String SQL = "sql";
+	private static final String SQL_FRAGEMENT = "sqlFragment";
 	private static final String COMMNET = "comment";
 	private static final String OBJECT_NAME = "objectName";
 	private static final String SERIAL_VERSION_UID = "serialVersionUID";
@@ -127,6 +130,22 @@ public final class SqlTemplateParserUtil {
 					.getResourceAsStream(MYBATIS_XSD_LOCAL);
 		}
 		return is;
+	}
+
+	public static Element parseXml(String xml) {
+		Document document = null;
+		try {
+			SAXReader reader = new SAXReader(false);
+			//
+			document = reader.read(new ByteArrayInputStream(xml.getBytes()));
+		} catch (Exception e) {
+			LOGGER.error("Parse xml error. XML :" + xml, e);
+		}
+
+		if (null == document) {
+			return null;
+		}
+		return document.getRootElement();
 	}
 
 	public static DbTable parseDbTable(File file) {
@@ -200,6 +219,12 @@ public final class SqlTemplateParserUtil {
 					continue;
 				}
 				table.getOperations().add(operation);
+			} else if (SQL_FRAGEMENT.equalsIgnoreCase(e.getName())) {
+				String id = e.attributeValue(ID);
+				DbSql sql = new DbSql();
+				sql.setId(id);
+				sql.setSql(e.getText());
+				table.getSqls().put(id, sql);
 			}
 		}
 		return table;
