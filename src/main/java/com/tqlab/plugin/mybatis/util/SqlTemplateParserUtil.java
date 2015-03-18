@@ -62,6 +62,7 @@ public final class SqlTemplateParserUtil {
 	private static final String ID = "id";
 	private static final String MANY = "many";
 	private static final String RESULT_TYPE = "resultType";
+	private static final String PARAMETER_TYPE = "parameterType";
 	private static final String RESULT = "result";
 	private static final String OPTIONS = "options";
 	private static final String OPTION = "option";
@@ -220,6 +221,7 @@ public final class SqlTemplateParserUtil {
 		String id = e.attributeValue(ID);
 		String many = e.attributeValue(MANY);
 		String resultType = e.attributeValue(RESULT_TYPE);
+		String parameterType = e.attributeValue(PARAMETER_TYPE);
 		String sql = e.elementText(SQL);
 		Element result = e.element(RESULT);
 		Element comment = e.element(COMMNET);
@@ -307,6 +309,8 @@ public final class SqlTemplateParserUtil {
 				dbParam.setType(type);
 				operation.addParams(dbParam);
 			}
+		} else if (null != parameterType) {
+			operation.setParameterType(parameterType);
 		}
 		return operation;
 	}

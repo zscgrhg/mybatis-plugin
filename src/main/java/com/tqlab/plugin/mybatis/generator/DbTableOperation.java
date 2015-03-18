@@ -30,6 +30,7 @@ public class DbTableOperation {
 	private String comment;
 	private String sql;
 	private String resultType;
+	private String parameterType;
 	private List<DbOption> options = new ArrayList<DbOption>();
 	private List<DbParam> params = new ArrayList<DbParam>();
 	private DbSelectResult result;
@@ -107,6 +108,21 @@ public class DbTableOperation {
 	 */
 	public void setResultType(String resultType) {
 		this.resultType = resultType;
+	}
+
+	/**
+	 * @return the parameterType
+	 */
+	public final String getParameterType() {
+		return parameterType;
+	}
+
+	/**
+	 * @param parameterType
+	 *            the parameterType to set
+	 */
+	public final void setParameterType(String parameterType) {
+		this.parameterType = parameterType;
 	}
 
 	/**

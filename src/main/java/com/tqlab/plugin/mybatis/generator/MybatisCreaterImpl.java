@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.mybatis.generator.api.MyBatisGenerator;
@@ -71,13 +70,13 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			final boolean overwrite, final Map<String, DbTable> dbTables,
 			final String... tables) {
 
-		String dir = outputDir.replace(File.separator, "/");
 		String url = jdbcUrl;
 		if (StringUtils.isNotBlank(url) && url.contains("&")
 				&& !url.contains("&amp;")) {
 			url = url.replace("&", "&amp;");
 		}
 
+		String dir = outputDir.replace(File.separator, "/");
 		final String java = dir + "/src/main/java/";
 		final String res = dir + "/src/main/resources/";
 
@@ -90,22 +89,6 @@ public class MybatisCreaterImpl implements MybatisCreater {
 			f.mkdirs();
 		}
 
-		if (overwrite) {
-			File packageFile = new File(new File(java), dalPackage.replace('.',
-					'/'));
-			File daoPackageFile = new File(packageFile, "dao");
-			File dataobjectPackageFile = new File(packageFile, "dataobject");
-			try {
-				if (daoPackageFile.exists()) {
-					FileUtils.deleteDirectory(daoPackageFile);
-				}
-				if (dataobjectPackageFile.exists()) {
-					FileUtils.deleteDirectory(dataobjectPackageFile);
-				}
-			} catch (IOException e) {
-				LOGGER.error("Delete file error.", e);
-			}
-		}
 		StringBuffer buf = new StringBuffer();
 
 		for (final String name : tables) {

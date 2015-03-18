@@ -43,6 +43,7 @@ import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 
+import org.apache.commons.lang.StringUtils;
 import org.mybatis.generator.api.GeneratedJavaFile;
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
@@ -153,7 +154,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 			addGeneralMethodComment(method, introspectedTable, comments);
 			final Set<FullyQualifiedJavaType> importedTypes = new TreeSet<FullyQualifiedJavaType>();
 
-			final List<Parameter> list = this.parseSqlParameter(sql, hasScript,
+			final List<Parameter> list = this.parseSqlParameter(
+					operation.getParameterType(), sql, hasScript,
 					operation.getParams());
 
 			if (hasScript) {
@@ -380,8 +382,8 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		}
 	}
 
-	private List<Parameter> parseSqlParameter(final String sql,
-			boolean hasScript, List<DbParam> params) {
+	private List<Parameter> parseSqlParameter(final String parameterType,
+			final String sql, boolean hasScript, List<DbParam> params) {
 		List<Parameter> result = new ArrayList<Parameter>();
 		Set<String> bindNames = new HashSet<String>();
 		for (DbParam param : params) {
@@ -396,19 +398,33 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 		//
 		List<String> list = new ArrayList<String>();
-		parseSqlParameter(list, sql);
-		for (String param : list) {
-			String s[] = param.split(",");
-			FullyQualifiedJavaType type = null;
-			if (s.length == 1) {
-				continue;
-			} else {
-				String jdbcTypeName = SqlTemplateParserUtil
-						.parseJdbcTypeName(s[1]);
-				type = SqlTemplateParserUtil
-						.getFullyQualifiedJavaType(jdbcTypeName);
+		if (StringUtils.isBlank(parameterType)) {
+
+			parseSqlParameter(list, sql);
+			for (String param : list) {
+				String s[] = param.split(",");
+				FullyQualifiedJavaType type = null;
+				if (s.length == 1) {
+					continue;
+				} else {
+					String jdbcTypeName = SqlTemplateParserUtil
+							.parseJdbcTypeName(s[1]);
+					type = SqlTemplateParserUtil
+							.getFullyQualifiedJavaType(jdbcTypeName);
+				}
+				result.add(getParameter(type, s[0], true));
 			}
-			result.add(getParameter(type, s[0], true));
+
+		} else {
+			FullyQualifiedJavaType type = new FullyQualifiedJavaType(
+					parameterType);
+			String name = type.getShortName();
+			if (name.length() > 2) {
+				name = name.substring(0, 1).toLowerCase() + name.substring(1);
+			} else {
+				name = name.toLowerCase();
+			}
+			result.add(getParameter(type, name, false));
 		}
 
 		if (hasScript) {
