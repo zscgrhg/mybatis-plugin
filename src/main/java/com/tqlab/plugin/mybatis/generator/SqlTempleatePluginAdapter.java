@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -44,6 +46,7 @@ import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 
 import org.apache.commons.lang.StringUtils;
+import org.dom4j.Element;
 import org.mybatis.generator.api.GeneratedJavaFile;
 import org.mybatis.generator.api.IntrospectedColumn;
 import org.mybatis.generator.api.IntrospectedTable;
@@ -73,6 +76,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 	private static final String CACHE_NAMESPACE_FQN = "org.apache.ibatis.annotations.CacheNamespace";
 	private static final String WITH_XML = ".xml";
+	private static final String INCLUDE = "<include(\\s)*refid(\\s)*=(\\s)*(\\\\)?(\\s)*\"[\\w-]+(\\s)*(\\\\)?\"(\\s)*/>";
 
 	private Map<String, DbTable> map = new HashMap<String, DbTable>();
 	private Map<String, GeneratedJavaFile> maps = new HashMap<String, GeneratedJavaFile>();
@@ -140,7 +144,20 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 
 		for (DbTableOperation operation : dbTable.getOperations()) {
 
-			final String sql = SqlUtil.trimSql(operation.getSql());
+			String sqlStr = SqlUtil.trimSql(operation.getSql());
+			// parse include <include refid="userColumns"/>
+			Matcher matcher = Pattern
+					.compile(INCLUDE, Pattern.CASE_INSENSITIVE).matcher(sqlStr);
+			while (matcher.find()) {
+				String s = matcher.group();
+				Element e = SqlTemplateParserUtil.parseXml(s.replace("\\", ""));
+				String id = e.attributeValue("refid");
+				DbSql sqlInclude = dbTable.getSqls().get(id);
+				if (null != sqlInclude) {
+					sqlStr = sqlStr.replace(s, sqlInclude.getSql());
+				}
+			}
+			final String sql = sqlStr;
 			final boolean hasScript = ScriptUtil.hasScript(operation.getSql());
 			Statement statement = this.getStatement(sql, hasScript);
 
@@ -235,6 +252,7 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 				statement = CCJSqlParserUtil.parse(tempSql);
 			} catch (Throwable e) {
 				//
+				System.err.print("parse sql error: " + tempSql);
 				e.printStackTrace();
 			}
 		}
