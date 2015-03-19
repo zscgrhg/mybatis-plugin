@@ -14,7 +14,7 @@ public final class SqlUtil {
 	/**
 	 * <xxxx /> or <xxxx>fff</xxxx>
 	 */
-	private static final String XML_PATTERN = "<[^>]+>[^<]*</[^>]+>";
+	private static final String XML_PATTERN = "((<[^>]+>[^<]*</[^>]+>)|(<[^<]*/>))";
 
 	/**
 	 * <pre>
