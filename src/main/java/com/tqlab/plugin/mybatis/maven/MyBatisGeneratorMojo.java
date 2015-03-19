@@ -271,7 +271,7 @@ public class MyBatisGeneratorMojo extends AbstractMojo {
 							+ File.separator
 							+ "src/main/resources/META-INF/spring/",
 							"common-dal-osgi.xml", "common-dal-osgi.template",
-							"${osgi}", getConfigStr(springConfig), overwrite);
+							"${osgi}", getConfigStr(osgiConfig), overwrite);
 				}
 
 			}
