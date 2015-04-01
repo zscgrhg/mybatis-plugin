@@ -175,6 +175,12 @@ public final class SqlUtil {
 		return s;
 	}
 
+	public static String sql(String sql) {
+		String tmp = sql.replace("&lt;", "<");
+		tmp = tmp.replace("&gt;", ">");
+		return tmp;
+	}
+
 	private static boolean isDynamicKeys(String s) {
 		for (String key : DYNAMIC_KEYS) {
 			if (s.startsWith(key)) {

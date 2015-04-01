@@ -240,16 +240,17 @@ public class SqlTempleatePluginAdapter extends PluginAdapter {
 		Statement statement = null;
 		if (!hasScript) {
 			try {
-				statement = CCJSqlParserUtil.parse(SqlUtil.filterSql(sql));
+				statement = CCJSqlParserUtil.parse(SqlUtil.sql(SqlUtil
+						.filterSql(sql)));
 			} catch (Throwable e) {
 				//
 			}
 		} else {
 			String tempSql = SqlUtil.filterXml(
 					sql.toLowerCase(Locale.getDefault()), "");
-			tempSql = SqlUtil.filterSql(tempSql).trim();
+			tempSql = SqlUtil.filterSql(tempSql);
 			try {
-				statement = CCJSqlParserUtil.parse(tempSql);
+				statement = CCJSqlParserUtil.parse(SqlUtil.sql(tempSql));
 			} catch (Throwable e) {
 				//
 				System.err.print("parse sql error: " + tempSql);
