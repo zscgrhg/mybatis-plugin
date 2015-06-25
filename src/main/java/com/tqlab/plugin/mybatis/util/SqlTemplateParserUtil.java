@@ -6,11 +6,9 @@ package com.tqlab.plugin.mybatis.util;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.net.URL;
 import java.sql.Types;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +81,6 @@ public final class SqlTemplateParserUtil {
 	private static final String SQL_SESSION_FACTORY = "sqlSessionFactory";
 
 	private static final String MYBATIS_XSD_LOCAL = "/com/tqlab/plugin/mybatis/tqlab-mybatis-plugin.xsd";
-	private static final String MYBATIS_XSD_REMOTE = "http://schema.tqlab.com/mybatis/tqlab-mybatis-plugin.xsd";
 
 	private SqlTemplateParserUtil() {
 
@@ -116,20 +113,8 @@ public final class SqlTemplateParserUtil {
 	}
 
 	private static InputStream getSchemaInputStream() {
-		InputStream is = null;
-		try {
-			URL url = new URL(MYBATIS_XSD_REMOTE);
-			is = url.openStream();
-		} catch (IOException e) {
-			is = null;
-			LOGGER.warn("Read file: " + MYBATIS_XSD_REMOTE + " error.");
-		}
-
-		if (null == is) {
-			is = SqlTemplateParserUtil.class
-					.getResourceAsStream(MYBATIS_XSD_LOCAL);
-		}
-		return is;
+		return SqlTemplateParserUtil.class
+				.getResourceAsStream(MYBATIS_XSD_LOCAL);
 	}
 
 	public static Element parseXml(String xml) {
